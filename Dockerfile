@@ -1,4 +1,4 @@
-FROM node:16.15-bullseye
+FROM node:16.19-bullseye
 
 WORKDIR /app
 
