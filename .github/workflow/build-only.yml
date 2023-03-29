@@ -1,0 +1,33 @@
+name: Just Build Docker
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+
+env:
+  APP_KEYS: "XXXXXXXXXXXXXXXXXXTEST==,XXXXXXXXXXXXXXXXXXTEST==,XXXXXXXXXXXXXXXXXXTEST==,XXXXXXXXXXXXXXXXXXTEST=="
+  API_TOKEN_SALT: "XXXXXXXXXXXXXXTEST=="
+  ADMIN_JWT_SECRET: "XXXXXXXXXXXTEST=="
+  JWT_SECRET: "XXXXXXXXXXXXXXTEST=="
+
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Yarn install and build
+        run: |
+          yarn install
+          yarn build
+      - name: Yarn install and build
+        run: |
+          yarn test
+      - name: Build Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: false
+          tags: ${{ secrets.APP_IMAGE }}

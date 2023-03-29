@@ -1,0 +1,45 @@
+{
+  "name": "breval-api",
+  "private": true,
+  "version": "1.0.0",
+  "description": "brev.al api",
+  "scripts": {
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build",
+    "strapi": "strapi",
+    "test": "jest --forceExit --detectOpenHandles --no-cache"
+  },
+  "devDependencies": {
+    "better-sqlite3": "7.4.6",
+    "jest": "26.6.3",
+    "sqlite3": "5.1.4",
+    "supertest": "6.3.3"
+  },
+  "dependencies": {
+    "@strapi/plugin-documentation": "4.6.1",
+    "@strapi/plugin-i18n": "4.6.1",
+    "@strapi/plugin-users-permissions": "4.6.1",
+    "@strapi/strapi": "4.6.1",
+    "strapi-chatgpt": "^1.0.2"
+  },
+  "author": {
+    "name": "LightIn"
+  },
+  "strapi": {
+    "uuid": "c0d864b1-1b09-4b5b-b4b4-416ea404ac56"
+  },
+  "engines": {
+    "node": ">=14.19.1 <=18.x.x",
+    "npm": ">=6.0.0"
+  },
+  "license": "MIT",
+  "jest": {
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      ".tmp",
+      ".cache"
+    ],
+    "testEnvironment": "node"
+  }
+}
