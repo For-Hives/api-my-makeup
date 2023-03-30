@@ -1,0 +1,61 @@
+{
+  "kind": "collectionType",
+  "collectionName": "makeup_artistes",
+  "info": {
+    "singularName": "makeup-artiste",
+    "pluralName": "makeup-artistes",
+    "displayName": "MakeupArtiste"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nom": {
+      "type": "string",
+      "required": true,
+      "minLength": 3
+    },
+    "prenom": {
+      "type": "string",
+      "required": true,
+      "minLength": 3
+    },
+    "speciality": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "action_radius": {
+      "type": "integer"
+    },
+    "score": {
+      "type": "decimal"
+    },
+    "mileage_charge": {
+      "type": "decimal"
+    },
+    "available": {
+      "type": "boolean"
+    },
+    "skills": {
+      "displayName": "skills",
+      "type": "component",
+      "repeatable": true,
+      "component": "makeupartistskills.skills"
+    },
+    "description": {
+      "type": "string"
+    },
+    "network": {
+      "displayName": "network",
+      "type": "component",
+      "repeatable": false,
+      "component": "makeupartistskills.network"
+    },
+    "language": {
+      "type": "string"
+    }
+  }
+}
