@@ -1,57 +1,58 @@
 # 🚀 Getting started with Strapi
 
-Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html) (CLI) which lets you scaffold and manage your project in seconds.
+## 📦 Requirements
 
-### `develop`
+- [Node.js](https://nodejs.org/en/download/)
+- [Yarn](https://yarnpkg.com/getting-started/install)
+- [Docker](https://docs.docker.com/get-docker/)
+- [Minio](https://docs.min.io/docs/minio-docker-quickstart-guide.html)
+- [Caprover](https://caprover.com/docs/get-started.html)
+- [Docker Hub](https://hub.docker.com/)
+- [Postgres Docker](https://hub.docker.com/_/postgres)
 
-Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html#strapi-develop)
+## 🧰 Development
+
+Start your Strapi application with autoReload
+enabled. [Learn more](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html#strapi-develop)
 
 ```
-npm run develop
-# or
 yarn develop
-```
-
-### `start`
-
-Start your Strapi application with autoReload disabled. [Learn more](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html#strapi-start)
-
-```
-npm run start
-# or
-yarn start
-```
-
-### `build`
-
-Build your admin panel. [Learn more](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html#strapi-build)
-
-```
-npm run build
-# or
-yarn build
 ```
 
 ## ⚙️ Deployment
 
-Strapi gives you many possible deployment options for your project. Find the one that suits you on the [deployment section of the documentation](https://docs.strapi.io/developer-docs/latest/setup-deployment-guides/deployment.html).
+### CI / CD environments variables
 
-## 📚 Learn more
+| Variable          | Description         |
+|-------------------|---------------------|
+| `APP_URL`         | Caprover app url    |
+| `APP_NAME`        | Caprover app name   |
+| `APP_TOKEN`       | Caprover app token  |
+| `DOCKER_USERNAME` | Docker hub username |
+| `DOCKER_PASSWORD` | Docker hub password |
+| `APP_IMAGE`       | Docker image name   |
+| `S3_ENDPOINT`     | Minio endpoint      |
+| `S3_PORT`         | Minio port          |
+| `S3_SSL`          | Minio ssl enable    |
 
-- [Resource center](https://strapi.io/resource-center) - Strapi resource center.
-- [Strapi documentation](https://docs.strapi.io) - Official Strapi documentation.
-- [Strapi tutorials](https://strapi.io/tutorials) - List of tutorials made by the core team and the community.
-- [Strapi blog](https://docs.strapi.io) - Official Strapi blog containing articles made by the Strapi team and the community.
-- [Changelog](https://strapi.io/changelog) - Find out about the Strapi product updates, new features and general improvements.
+### Docker environments variables
 
-Feel free to check out the [Strapi GitHub repository](https://github.com/strapi/strapi). Your feedback and contributions are welcome!
-
-## ✨ Community
-
-- [Discord](https://discord.strapi.io) - Come chat with the Strapi community including the core team.
-- [Forum](https://forum.strapi.io/) - Place to discuss, ask questions and find answers, show your Strapi project and get feedback or just talk with other Community members.
-- [Awesome Strapi](https://github.com/strapi/awesome-strapi) - A curated list of awesome things related to Strapi.
-
----
-
-<sub>🤫 Psst! [Strapi is hiring](https://strapi.io/careers).</sub>
+| Variable            | Description                                    |
+|---------------------|------------------------------------------------|
+| `HOST`              | Straip host listener                           |
+| `PORT`              | Straip port listener                           |
+| `APP_KEY`           | Set the application key                        |
+| `API_TOKEN_SALT`    | Set the API token salt                         |
+| `ADMIN_JWT_SECRET`  | Set the admin JWT secret                       |
+| `DB_CLIENT`         | Set the database client  ( postgres / sqlite ) |
+| `DATABASE_HOST`     | Set the database host                          |
+| `DATABASE_PORT`     | Set the database port                          |
+| `DATABASE_NAME`     | Set the database name                          |
+| `DATABASE_USERNAME` | Set the database username                      |
+| `DATABASE_PASSWORD` | Set the database password                      |
+| `S3_ENDPOINT`       | Minio endpoint                                 |
+| `S3_PORT`           | Minio port                                     |
+| `S3_SSL`            | Minio ssl enable                               |
+| `S3_BUCKET`         | Minio bucket name                              |
+| `S3_ACCESS_KEY_ID`  | Minio access key id                            |
+| `S3_ACCESS_SECRET`  | Minio access secret                            |
