@@ -4,7 +4,8 @@
   "info": {
     "singularName": "makeup-artiste",
     "pluralName": "makeup-artistes",
-    "displayName": "MakeupArtiste"
+    "displayName": "MakeupArtiste",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -43,7 +44,7 @@
       "displayName": "skills",
       "type": "component",
       "repeatable": true,
-      "component": "makeupartistskills.skills"
+      "component": "makeupartists.skills"
     },
     "description": {
       "type": "string"
@@ -52,10 +53,34 @@
       "displayName": "network",
       "type": "component",
       "repeatable": false,
-      "component": "makeupartistskills.network"
+      "component": "makeupartists.network"
     },
     "language": {
       "type": "string"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "makeup_artiste"
+    },
+    "Experiences": {
+      "displayName": "Experiences",
+      "type": "component",
+      "repeatable": true,
+      "component": "makeupartists.experiences"
+    },
+    "courses": {
+      "displayName": "courses",
+      "type": "component",
+      "repeatable": true,
+      "component": "makeupartists.courses"
+    },
+    "service_offers": {
+      "displayName": "service_offers",
+      "type": "component",
+      "repeatable": true,
+      "component": "makeupartists.service-offers"
     }
   }
 }
