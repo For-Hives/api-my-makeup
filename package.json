@@ -21,7 +21,7 @@
     "@strapi/plugin-i18n": "4.9.0",
     "@strapi/plugin-users-permissions": "4.9.0",
     "@strapi/strapi": "4.9.0",
-    "strapi-chatgpt": "^1.0.2"
+    "minio-for-strapi-v4": "1.0.7"
   },
   "author": {
     "name": "LightIn"

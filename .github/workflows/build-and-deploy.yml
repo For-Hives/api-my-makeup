@@ -4,6 +4,11 @@ on:
   push:
     branches: [ "main" ]
 
+env:
+  S3_ENDPOINT: 'minio.beta.andy-cinquin.fr'
+  S3_SSL: true
+  S3_PORT: 9000
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
