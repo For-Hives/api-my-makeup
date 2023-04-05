@@ -1,6 +1,6 @@
 module.exports = ({ env }) => {
   var ssl = env("S3_SSL", "false") === "true" ? "https://" : "http://";
-  const s3url = new URL(ssl + env("S3_ENDPOINT") + ":" + env("S3_PORT"));
+  const s3url = new URL(ssl + env("S3_ENDPOINT") + ":" + 9000);
   return [
     'strapi::errors',
     {
