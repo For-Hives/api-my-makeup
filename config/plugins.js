@@ -13,7 +13,7 @@ module.exports = ({env}) => ({
       provider: 'minio-for-strapi-v4',
       providerOptions: {
         endPoint: env("S3_ENDPOINT"), //s3.example.com
-        port: 9000, // parseInt(env("S3_PORT"), 9000), //9000
+        port: 443, // parseInt(env("S3_PORT"), 9000), //9000
         useSSL: env("S3_SSL", false) === "true", //true or false
         accessKey: env("S3_ACCESS_KEY_ID"),
         secretKey: env("S3_ACCESS_SECRET"),
