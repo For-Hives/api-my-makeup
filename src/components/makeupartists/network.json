@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_makeupartists_networks",
+  "info": {
+    "displayName": "network"
+  },
+  "options": {},
+  "attributes": {
+    "youtube": {
+      "type": "string"
+    },
+    "facebook": {
+      "type": "string"
+    },
+    "instagram": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    }
+  }
+}

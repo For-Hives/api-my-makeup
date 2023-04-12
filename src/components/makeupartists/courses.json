@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_makeupartists_courses",
+  "info": {
+    "displayName": "Courses",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "diploma": {
+      "type": "string"
+    },
+    "school": {
+      "type": "string"
+    },
+    "date_graduation": {
+      "type": "date"
+    },
+    "course_description": {
+      "type": "text"
+    }
+  }
+}

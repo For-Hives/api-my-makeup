@@ -1,0 +1,93 @@
+{
+  "kind": "collectionType",
+  "collectionName": "makeup_artistes",
+  "info": {
+    "singularName": "makeup-artiste",
+    "pluralName": "makeup-artistes",
+    "displayName": "MakeupArtiste",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nom": {
+      "type": "string",
+      "required": true,
+      "minLength": 3
+    },
+    "prenom": {
+      "type": "string",
+      "required": true,
+      "minLength": 3
+    },
+    "speciality": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "action_radius": {
+      "type": "integer"
+    },
+    "score": {
+      "type": "decimal"
+    },
+    "mileage_charge": {
+      "type": "decimal"
+    },
+    "available": {
+      "type": "boolean"
+    },
+    "skills": {
+      "displayName": "skills",
+      "type": "component",
+      "repeatable": true,
+      "component": "makeupartists.skills"
+    },
+    "description": {
+      "type": "string"
+    },
+    "network": {
+      "displayName": "network",
+      "type": "component",
+      "repeatable": false,
+      "component": "makeupartists.network"
+    },
+    "language": {
+      "type": "string"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "makeup_artiste"
+    },
+    "Experiences": {
+      "displayName": "Experiences",
+      "type": "component",
+      "repeatable": true,
+      "component": "makeupartists.experiences"
+    },
+    "courses": {
+      "displayName": "courses",
+      "type": "component",
+      "repeatable": true,
+      "component": "makeupartists.courses"
+    },
+    "service_offers": {
+      "displayName": "service_offers",
+      "type": "component",
+      "repeatable": true,
+      "component": "makeupartists.service-offers"
+    },
+    "image_gallery": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": true
+    }
+  }
+}
