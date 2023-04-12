@@ -81,6 +81,13 @@
       "type": "component",
       "repeatable": true,
       "component": "makeupartists.service-offers"
+    },
+    "image_gallery": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": true
     }
   }
 }
