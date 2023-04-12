@@ -29,13 +29,6 @@
       "type": "component",
       "repeatable": true,
       "component": "service-offers.options"
-    },
-    "main_picture": {
-      "allowedTypes": [
-        "images"
-      ],
-      "type": "media",
-      "multiple": false
     }
   }
 }

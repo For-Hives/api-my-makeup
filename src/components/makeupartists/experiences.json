@@ -1,11 +1,12 @@
 {
   "collectionName": "components_makeupartists_experiences",
   "info": {
-    "displayName": "Experiences"
+    "displayName": "Experiences",
+    "description": ""
   },
   "options": {},
   "attributes": {
-    "Company": {
+    "company": {
       "type": "string"
     },
     "job_name": {

@@ -12,12 +12,12 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "nom": {
+    "last_name": {
       "type": "string",
       "required": true,
       "minLength": 3
     },
-    "prenom": {
+    "first_name": {
       "type": "string",
       "required": true,
       "minLength": 3
@@ -64,7 +64,7 @@
       "target": "plugin::users-permissions.user",
       "inversedBy": "makeup_artiste"
     },
-    "Experiences": {
+    "experiences": {
       "displayName": "Experiences",
       "type": "component",
       "repeatable": true,
@@ -83,11 +83,19 @@
       "component": "makeupartists.service-offers"
     },
     "image_gallery": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "main_picture": {
       "allowedTypes": [
         "images"
       ],
       "type": "media",
-      "multiple": true
+      "multiple": false
     }
   }
 }
