@@ -14,12 +14,10 @@
   "attributes": {
     "last_name": {
       "type": "string",
-      "required": true,
       "minLength": 3
     },
     "first_name": {
       "type": "string",
-      "required": true,
       "minLength": 3
     },
     "speciality": {
