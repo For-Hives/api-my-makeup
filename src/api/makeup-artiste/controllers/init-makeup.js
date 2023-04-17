@@ -8,22 +8,17 @@ module.exports = {
   async initMakeup(ctx, next) {
     try {
 
-      console.log("initMakeup controller called")
-      console.log(ctx.request.body);
-      console.log(ctx)
-
-      const { test } = ctx.request.body;
+      const { json } = ctx.request.body;
 
       const data = await strapi
         .service("api::makeup-artiste.init-makeup")
-        .createMakeupArtist(ctx.state.user, test);
-
-      console.log(data, "data");
+        .createMakeupArtist(ctx.state.user, json);
 
       ctx.body = data;
 
     } catch (err) {
-      ctx.badRequest("Post report controller error", { moreDetails: err });
+      console.log(err.body)
+      ctx.badRequest("Init Makeup artist controller error", { moreDetails: err });
     }
   }
 };
