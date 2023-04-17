@@ -2,10 +2,10 @@ name: Build and Deploy
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
-  S3_ENDPOINT: 'minio.beta.andy-cinquin.fr'
+  S3_ENDPOINT: "minio.beta.andy-cinquin.fr"
   S3_SSL: true
   S3_PORT: 9000
 
@@ -32,4 +32,3 @@ jobs:
           tags: ${{ secrets.APP_IMAGE }}
       - name: Deploy on cap rover
         run: docker run caprover/cli-caprover:latest caprover deploy --caproverUrl "${{ secrets.APP_URL }}" --appToken "${{ secrets.APP_TOKEN }}" --caproverApp "${{ secrets.APP_NAME }}" --imageName "${{ secrets.APP_IMAGE }}"
-
