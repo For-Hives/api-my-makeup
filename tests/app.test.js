@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require("fs");
 const { setupStrapi, cleanupStrapi } = require("./helpers/strapi");
 
 beforeAll(async () => {
@@ -13,8 +13,5 @@ it("strapi is defined", () => {
   expect(strapi).toBeDefined();
 });
 
-
-
 // require('./hello');
-require('./user');
-
+require("./user");

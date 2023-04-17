@@ -1,4 +1,4 @@
-const request = require('supertest');
+const request = require("supertest");
 
 it("should return hello world", async () => {
   await request(strapi.server.httpServer)
