@@ -8,7 +8,7 @@ module.exports = {
   async initMakeup(ctx, next) {
     try {
 
-      const { json } = ctx.request.body;
+      const {json} = ctx.request.body;
 
       const data = await strapi
         .service("api::makeup-artiste.init-makeup")
@@ -17,8 +17,8 @@ module.exports = {
       ctx.body = data;
 
     } catch (err) {
-      console.log(err.body)
-      ctx.badRequest("Init Makeup artist controller error", { moreDetails: err });
+      console.log(err)
+      ctx.badRequest("Init Makeup artist controller error", {moreDetails: err});
     }
   }
 };
