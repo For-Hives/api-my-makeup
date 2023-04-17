@@ -33,8 +33,7 @@ module.exports = {
         data: {
           user: {
             connect: [{id: user.id}]
-          }, first_name: "test", last_name: "test"
-
+          }
         }
       });
 
