@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2023-04-17T19:35:33.285Z"
+    "x-generation-date": "2023-04-17T20:26:06.868Z"
   },
   "x-strapi-config": {
     "path": "/documentation",
@@ -135,9 +135,6 @@
               "network": {
                 "$ref": "#/components/schemas/MakeupartistsNetworkComponent"
               },
-              "language": {
-                "type": "string"
-              },
               "user": {
                 "oneOf": [
                   {
@@ -191,6 +188,12 @@
                   }
                 ],
                 "example": "string or id"
+              },
+              "language": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MakeupartistsLanguageComponent"
+                }
               }
             }
           }
@@ -242,9 +245,6 @@
               },
               "network": {
                 "$ref": "#/components/schemas/MakeupartistsNetworkComponent"
-              },
-              "language": {
-                "type": "string"
               },
               "user": {
                 "type": "object",
@@ -780,9 +780,6 @@
                                             "type": "string"
                                           }
                                         }
-                                      },
-                                      "language": {
-                                        "type": "string"
                                       },
                                       "user": {
                                         "type": "object",
@@ -2155,6 +2152,20 @@
                                           }
                                         }
                                       },
+                                      "language": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "type": "number"
+                                            },
+                                            "name": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        }
+                                      },
                                       "createdAt": {
                                         "type": "string",
                                         "format": "date-time"
@@ -3516,6 +3527,12 @@
                       }
                     }
                   }
+                }
+              },
+              "language": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MakeupartistsLanguageComponent"
                 }
               },
               "createdAt": {
@@ -3615,9 +3632,6 @@
               "network": {
                 "$ref": "#/components/schemas/MakeupartistsNetworkComponent"
               },
-              "language": {
-                "type": "string"
-              },
               "user": {
                 "type": "object",
                 "properties": {
@@ -4152,9 +4166,6 @@
                                             "type": "string"
                                           }
                                         }
-                                      },
-                                      "language": {
-                                        "type": "string"
                                       },
                                       "user": {
                                         "type": "object",
@@ -5527,6 +5538,20 @@
                                           }
                                         }
                                       },
+                                      "language": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "type": "number"
+                                            },
+                                            "name": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        }
+                                      },
                                       "createdAt": {
                                         "type": "string",
                                         "format": "date-time"
@@ -6888,6 +6913,12 @@
                       }
                     }
                   }
+                }
+              },
+              "language": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MakeupartistsLanguageComponent"
                 }
               },
               "createdAt": {
@@ -7020,9 +7051,6 @@
               "network": {
                 "$ref": "#/components/schemas/MakeupartistsNetworkComponent"
               },
-              "language": {
-                "type": "string"
-              },
               "user": {
                 "type": "object",
                 "properties": {
@@ -7557,9 +7585,6 @@
                                             "type": "string"
                                           }
                                         }
-                                      },
-                                      "language": {
-                                        "type": "string"
                                       },
                                       "user": {
                                         "type": "object",
@@ -8932,6 +8957,20 @@
                                           }
                                         }
                                       },
+                                      "language": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "type": "number"
+                                            },
+                                            "name": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        }
+                                      },
                                       "createdAt": {
                                         "type": "string",
                                         "format": "date-time"
@@ -10293,6 +10332,12 @@
                       }
                     }
                   }
+                }
+              },
+              "language": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MakeupartistsLanguageComponent"
                 }
               },
               "createdAt": {
@@ -10392,9 +10437,6 @@
               "network": {
                 "$ref": "#/components/schemas/MakeupartistsNetworkComponent"
               },
-              "language": {
-                "type": "string"
-              },
               "user": {
                 "type": "object",
                 "properties": {
@@ -10929,9 +10971,6 @@
                                             "type": "string"
                                           }
                                         }
-                                      },
-                                      "language": {
-                                        "type": "string"
                                       },
                                       "user": {
                                         "type": "object",
@@ -12304,6 +12343,20 @@
                                           }
                                         }
                                       },
+                                      "language": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "type": "number"
+                                            },
+                                            "name": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        }
+                                      },
                                       "createdAt": {
                                         "type": "string",
                                         "format": "date-time"
@@ -13665,6 +13718,12 @@
                       }
                     }
                   }
+                }
+              },
+              "language": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MakeupartistsLanguageComponent"
                 }
               },
               "createdAt": {
@@ -13858,6 +13917,17 @@
                 }
               }
             }
+          }
+        }
+      },
+      "MakeupartistsLanguageComponent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
           }
         }
       },
@@ -19506,9 +19576,6 @@
                                                         }
                                                       }
                                                     },
-                                                    "language": {
-                                                      "type": "string"
-                                                    },
                                                     "user": {
                                                       "type": "object",
                                                       "properties": {
@@ -20876,6 +20943,20 @@
                                                                 }
                                                               }
                                                             }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "language": {
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                          "id": {
+                                                            "type": "number"
+                                                          },
+                                                          "name": {
+                                                            "type": "string"
                                                           }
                                                         }
                                                       }
@@ -21573,9 +21654,6 @@
                                                         }
                                                       }
                                                     },
-                                                    "language": {
-                                                      "type": "string"
-                                                    },
                                                     "user": {
                                                       "type": "object",
                                                       "properties": {
@@ -22943,6 +23021,20 @@
                                                                 }
                                                               }
                                                             }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "language": {
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                          "id": {
+                                                            "type": "number"
+                                                          },
+                                                          "name": {
+                                                            "type": "string"
                                                           }
                                                         }
                                                       }
@@ -23673,9 +23765,6 @@
                                                         }
                                                       }
                                                     },
-                                                    "language": {
-                                                      "type": "string"
-                                                    },
                                                     "user": {
                                                       "type": "object",
                                                       "properties": {
@@ -25043,6 +25132,20 @@
                                                                 }
                                                               }
                                                             }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "language": {
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                          "id": {
+                                                            "type": "number"
+                                                          },
+                                                          "name": {
+                                                            "type": "string"
                                                           }
                                                         }
                                                       }
@@ -25740,9 +25843,6 @@
                                                         }
                                                       }
                                                     },
-                                                    "language": {
-                                                      "type": "string"
-                                                    },
                                                     "user": {
                                                       "type": "object",
                                                       "properties": {
@@ -27114,6 +27214,20 @@
                                                         }
                                                       }
                                                     },
+                                                    "language": {
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                          "id": {
+                                                            "type": "number"
+                                                          },
+                                                          "name": {
+                                                            "type": "string"
+                                                          }
+                                                        }
+                                                      }
+                                                    },
                                                     "createdAt": {
                                                       "type": "string",
                                                       "format": "date-time"
@@ -27578,9 +27692,6 @@
                                                                         "type": "string"
                                                                       }
                                                                     }
-                                                                  },
-                                                                  "language": {
-                                                                    "type": "string"
                                                                   },
                                                                   "user": {
                                                                     "type": "object",
@@ -28949,6 +29060,20 @@
                                                                               }
                                                                             }
                                                                           }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "language": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                      "type": "object",
+                                                                      "properties": {
+                                                                        "id": {
+                                                                          "type": "number"
+                                                                        },
+                                                                        "name": {
+                                                                          "type": "string"
                                                                         }
                                                                       }
                                                                     }
@@ -29675,9 +29800,6 @@
                                                                       }
                                                                     }
                                                                   },
-                                                                  "language": {
-                                                                    "type": "string"
-                                                                  },
                                                                   "user": {
                                                                     "type": "object",
                                                                     "properties": {
@@ -31045,6 +31167,20 @@
                                                                               }
                                                                             }
                                                                           }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "language": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                      "type": "object",
+                                                                      "properties": {
+                                                                        "id": {
+                                                                          "type": "number"
+                                                                        },
+                                                                        "name": {
+                                                                          "type": "string"
                                                                         }
                                                                       }
                                                                     }
@@ -31804,9 +31940,6 @@
                                                                       }
                                                                     }
                                                                   },
-                                                                  "language": {
-                                                                    "type": "string"
-                                                                  },
                                                                   "user": {
                                                                     "type": "object",
                                                                     "properties": {
@@ -33174,6 +33307,20 @@
                                                                               }
                                                                             }
                                                                           }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "language": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                      "type": "object",
+                                                                      "properties": {
+                                                                        "id": {
+                                                                          "type": "number"
+                                                                        },
+                                                                        "name": {
+                                                                          "type": "string"
                                                                         }
                                                                       }
                                                                     }
@@ -33900,9 +34047,6 @@
                                                                       }
                                                                     }
                                                                   },
-                                                                  "language": {
-                                                                    "type": "string"
-                                                                  },
                                                                   "user": {
                                                                     "type": "object",
                                                                     "properties": {
@@ -35270,6 +35414,20 @@
                                                                               }
                                                                             }
                                                                           }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "language": {
+                                                                    "type": "array",
+                                                                    "items": {
+                                                                      "type": "object",
+                                                                      "properties": {
+                                                                        "id": {
+                                                                          "type": "number"
+                                                                        },
+                                                                        "name": {
+                                                                          "type": "string"
                                                                         }
                                                                       }
                                                                     }
@@ -36382,9 +36540,6 @@
                                                         }
                                                       }
                                                     },
-                                                    "language": {
-                                                      "type": "string"
-                                                    },
                                                     "user": {
                                                       "type": "object",
                                                       "properties": {
@@ -37752,6 +37907,20 @@
                                                                 }
                                                               }
                                                             }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "language": {
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                          "id": {
+                                                            "type": "number"
+                                                          },
+                                                          "name": {
+                                                            "type": "string"
                                                           }
                                                         }
                                                       }
@@ -38485,9 +38654,6 @@
                                                         }
                                                       }
                                                     },
-                                                    "language": {
-                                                      "type": "string"
-                                                    },
                                                     "user": {
                                                       "type": "object",
                                                       "properties": {
@@ -39855,6 +40021,20 @@
                                                                 }
                                                               }
                                                             }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "language": {
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                          "id": {
+                                                            "type": "number"
+                                                          },
+                                                          "name": {
+                                                            "type": "string"
                                                           }
                                                         }
                                                       }
@@ -40621,9 +40801,6 @@
                                                         }
                                                       }
                                                     },
-                                                    "language": {
-                                                      "type": "string"
-                                                    },
                                                     "user": {
                                                       "type": "object",
                                                       "properties": {
@@ -41991,6 +42168,20 @@
                                                                 }
                                                               }
                                                             }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "language": {
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                          "id": {
+                                                            "type": "number"
+                                                          },
+                                                          "name": {
+                                                            "type": "string"
                                                           }
                                                         }
                                                       }
@@ -42724,9 +42915,6 @@
                                                         }
                                                       }
                                                     },
-                                                    "language": {
-                                                      "type": "string"
-                                                    },
                                                     "user": {
                                                       "type": "object",
                                                       "properties": {
@@ -44094,6 +44282,20 @@
                                                                 }
                                                               }
                                                             }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "language": {
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                          "id": {
+                                                            "type": "number"
+                                                          },
+                                                          "name": {
+                                                            "type": "string"
                                                           }
                                                         }
                                                       }

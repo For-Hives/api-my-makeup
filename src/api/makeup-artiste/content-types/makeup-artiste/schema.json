@@ -55,9 +55,6 @@
       "repeatable": false,
       "component": "makeupartists.network"
     },
-    "language": {
-      "type": "string"
-    },
     "user": {
       "type": "relation",
       "relation": "oneToOne",
@@ -97,6 +94,12 @@
       "allowedTypes": [
         "images"
       ]
+    },
+    "language": {
+      "displayName": "language",
+      "type": "component",
+      "repeatable": true,
+      "component": "makeupartists.language"
     }
   }
 }
