@@ -14,12 +14,12 @@
   "attributes": {
     "last_name": {
       "type": "string",
-      "required": true,
+      "required": false,
       "minLength": 3
     },
     "first_name": {
       "type": "string",
-      "required": true,
+      "required": false,
       "minLength": 3
     },
     "speciality": {
@@ -91,11 +91,12 @@
       ]
     },
     "main_picture": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
       "allowedTypes": [
         "images"
-      ],
-      "type": "media",
-      "multiple": false
+      ]
     }
   }
 }
