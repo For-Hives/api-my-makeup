@@ -63,9 +63,7 @@
           }
         }
       },
-      "tags": [
-        "Upload - File"
-      ],
+      "tags": ["Upload - File"],
       "parameters": [
         {
           "name": "sort",
@@ -236,9 +234,7 @@
           }
         }
       },
-      "tags": [
-        "Upload - File"
-      ],
+      "tags": ["Upload - File"],
       "parameters": [
         {
           "name": "id",
@@ -317,9 +313,7 @@
           }
         }
       },
-      "tags": [
-        "Upload - File"
-      ],
+      "tags": ["Upload - File"],
       "parameters": [
         {
           "name": "id",

@@ -63,9 +63,7 @@
           }
         }
       },
-      "tags": [
-        "Makeup-artiste"
-      ],
+      "tags": ["Makeup-artiste"],
       "parameters": [
         {
           "name": "sort",
@@ -234,9 +232,7 @@
           }
         }
       },
-      "tags": [
-        "Makeup-artiste"
-      ],
+      "tags": ["Makeup-artiste"],
       "parameters": [],
       "operationId": "post/makeup-artistes",
       "requestBody": {
@@ -315,9 +311,7 @@
           }
         }
       },
-      "tags": [
-        "Makeup-artiste"
-      ],
+      "tags": ["Makeup-artiste"],
       "parameters": [
         {
           "name": "id",
@@ -395,9 +389,7 @@
           }
         }
       },
-      "tags": [
-        "Makeup-artiste"
-      ],
+      "tags": ["Makeup-artiste"],
       "parameters": [
         {
           "name": "id",
@@ -486,9 +478,7 @@
           }
         }
       },
-      "tags": [
-        "Makeup-artiste"
-      ],
+      "tags": ["Makeup-artiste"],
       "parameters": [
         {
           "name": "id",

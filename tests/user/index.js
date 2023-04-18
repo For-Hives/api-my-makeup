@@ -1,4 +1,4 @@
-const request = require('supertest');
+const request = require("supertest");
 const expect = require("expect");
 
 // user mock data
@@ -32,32 +32,34 @@ it("should login user and return jwt token", async () => {
     });
 });
 
-it('should return users data for authenticated user', async () => {
+it("should return users data for authenticated user", async () => {
   /** Gets the default user role */
-  const defaultRole = await strapi.query('plugin::users-permissions.role').findOne({}, []);
+  const defaultRole = await strapi
+    .query("plugin::users-permissions.role")
+    .findOne({}, []);
 
   const role = defaultRole ? defaultRole.id : null;
 
   /** Creates a new user an push to database */
-  const user = await strapi.plugins['users-permissions'].services.user.add({
+  const user = await strapi.plugins["users-permissions"].services.user.add({
     ...mockUserData,
-    username: 'tester2',
-    email: 'tester2@strapi.com',
+    username: "tester2",
+    email: "tester2@strapi.com",
     role,
   });
 
-  const jwt = strapi.plugins['users-permissions'].services.jwt.issue({
+  const jwt = strapi.plugins["users-permissions"].services.jwt.issue({
     id: user.id,
   });
 
   await request(strapi.server.httpServer) // app server is an instance of Class: http.Server
-    .get('/api/users/me')
-    .set('accept', 'application/json')
-    .set('Content-Type', 'application/json')
-    .set('Authorization', 'Bearer ' + jwt)
-    .expect('Content-Type', /json/)
+    .get("/api/users/me")
+    .set("accept", "application/json")
+    .set("Content-Type", "application/json")
+    .set("Authorization", "Bearer " + jwt)
+    .expect("Content-Type", /json/)
     .expect(200)
-    .then(data => {
+    .then((data) => {
       expect(data.body).toBeDefined();
       expect(data.body.id).toBe(user.id);
       expect(data.body.username).toBe(user.username);

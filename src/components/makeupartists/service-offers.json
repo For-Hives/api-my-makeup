@@ -17,12 +17,7 @@
     },
     "pricing_type": {
       "type": "enumeration",
-      "enum": [
-        "hour",
-        "day",
-        "package",
-        "quote"
-      ]
+      "enum": ["hour", "day", "package", "quote"]
     },
     "Options": {
       "displayName": "options",
