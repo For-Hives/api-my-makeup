@@ -1,0 +1,12 @@
+{
+  "collectionName": "components_makeupartists_languages",
+  "info": {
+    "displayName": "language"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    }
+  }
+}
