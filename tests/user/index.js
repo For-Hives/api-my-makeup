@@ -1,5 +1,5 @@
 const request = require("supertest");
-const expect = require("expect");
+const { expect } = require("@jest/globals");
 
 // user mock data
 const mockUserData = {

@@ -9,13 +9,15 @@
     "build": "strapi build",
     "strapi": "strapi",
     "test": "jest --forceExit --detectOpenHandles --no-cache",
-    "prettier": "prettier --write ."
+    "prettier": "prettier --write .",
+    "husky": "husky install"
   },
   "devDependencies": {
+    "@jest/globals": "29.5.0",
     "better-sqlite3": "8.3.0",
+    "husky": "^8.0.3",
     "jest": "29.5.0",
     "sqlite3": "5.1.6",
-    "husky": "^8.0.3",
     "supertest": "6.3.3"
   },
   "dependencies": {
