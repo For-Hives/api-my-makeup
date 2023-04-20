@@ -39,4 +39,43 @@ module.exports = {
       },
     });
   },
+  updateMakeupArtist: async (user) => {
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // find if makeup artist already exists for user
+    const existing = await strapi.entityService.findMany(
+      "api::makeup-artiste.makeup-artiste",
+      {
+        fields: ["id"],
+        filters: {
+          user: {
+            id: {
+              $eq: user.id,
+            },
+          },
+        },
+      }
+    );
+
+    if (!existing && existing.length !== 1) {
+      throw new Error("Makeup artist does not exist for this user");
+    }
+
+    // update the makeup artist linked to user
+    return strapi.entityService.update(
+      "api::makeup-artiste.makeup-artiste",
+      existing[0].id, // id of makeup artist linked to user
+      {
+        data: {
+          // update the makeup artist here
+
+          user: {
+            connect: [{ id: user.id }],
+          },
+        },
+      }
+    );
+  },
 };
