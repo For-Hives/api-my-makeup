@@ -16,8 +16,8 @@ module.exports = {
       ctx.body = data;
     } catch (err) {
       console.log(err);
-      ctx.badRequest("Init Makeup artist controller error", {
-        moreDetails: err,
+      ctx.badRequest("Makeup artist initialisation error", {
+        moreDetails: err.message,
       });
     }
   },
@@ -27,7 +27,7 @@ module.exports = {
 
       const data = await strapi
         .service("api::makeup-artiste.init-makeup")
-        .createMakeupArtist(ctx.state.user, json);
+        .updateMakeupArtist(ctx.state.user, json);
 
       ctx.body = data;
     } catch (err) {
