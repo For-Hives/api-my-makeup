@@ -12,7 +12,7 @@ module.exports = {
       },
     },
     {
-      method: "POST",
+      method: "PATCH",
       path: "/update-makeup",
       handler: "init-makeup.updateMakeup",
       config: {
