@@ -59,7 +59,7 @@ module.exports = {
       }
     );
 
-    if (!existing && existing.length !== 1) {
+    if (!existing || existing.length !== 1) {
       throw new Error("Makeup artist does not exist for this user");
     }
 

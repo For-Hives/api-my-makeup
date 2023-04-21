@@ -21,7 +21,7 @@ module.exports = {
   },
   async updateMakeup(ctx, next) {
     try {
-      const { json } = ctx.request.body;
+      const json = ctx.request.body;
 
       const data = await strapi
         .service("api::makeup-artiste.init-makeup")
