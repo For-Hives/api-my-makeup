@@ -11,5 +11,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: "PATCH",
+      path: "/update-makeup",
+      handler: "init-makeup.updateMakeup",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };
