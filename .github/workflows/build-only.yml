@@ -26,10 +26,10 @@ jobs:
         run: |
           yarn install
           yarn build
-      - name: Yarn install and build
+      - name: Unit Test
         run: |
           yarn test
-      - name: Build Docker image
+      - name: Try Building image
         uses: docker/build-push-action@v4
         with:
           context: .
