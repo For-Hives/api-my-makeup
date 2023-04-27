@@ -20,5 +20,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: "GET",
+      path: "/me-makeup",
+      handler: "init-makeup.meMakeup",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

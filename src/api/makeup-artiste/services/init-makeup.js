@@ -93,4 +93,31 @@ module.exports = {
       }
     );
   },
+  meMakeupArtist: async (user) => {
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // find if makeup artist already exists for user
+    const existing = await strapi.entityService.findMany(
+      "api::makeup-artiste.makeup-artiste",
+      {
+        populate: "*",
+        filters: {
+          user: {
+            id: {
+              $eq: user.id,
+            },
+          },
+        },
+      }
+    );
+
+    if (!existing || existing.length !== 1) {
+      throw new Error("Makeup artist does not exist for this user");
+    }
+
+    // return the makeup artist linked to user
+    return existing;
+  },
 };
