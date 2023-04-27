@@ -111,12 +111,8 @@ module.exports = {
       });
 
       // search for the user
-      const result = fuse.search(params);
-      console.log(result);
-
-      return result;
+      return fuse.search(params);
     } catch (err) {
-      console.log(err);
       throw err;
     }
   },
