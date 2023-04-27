@@ -35,4 +35,18 @@ module.exports = {
       });
     }
   },
+  async meMakeup(ctx, next) {
+    try {
+      const data = await strapi
+        .service("api::makeup-artiste.init-makeup")
+        .meMakeupArtist(ctx.state.user);
+
+      ctx.body = data;
+    } catch (err) {
+      console.log(err);
+      ctx.badRequest("updating Makeup Artist error", {
+        moreDetails: err.message,
+      });
+    }
+  },
 };
