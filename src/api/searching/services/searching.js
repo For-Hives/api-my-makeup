@@ -1,50 +1,122 @@
 "use strict";
+const Fuse = require("fuse.js");
+
+const balancedKeys = [
+  {
+    name: "speciality",
+    weight: 2,
+  },
+  {
+    name: "city",
+    weight: 3,
+  },
+  {
+    name: "skills_name",
+    weight: 1.5,
+    getFn: (makeupArtiste) => makeupArtiste.skills.map((skill) => skill.name),
+  },
+  {
+    name: "skills_description",
+    weight: 1.5,
+    getFn: (makeupArtiste) =>
+      makeupArtiste.skills.map((skill) => skill.short_description),
+  },
+  "description",
+  {
+    name: "service_offers_description",
+    weight: 1.5,
+    getFn: (makeupArtiste) =>
+      makeupArtiste.service_offers.map((service) => service.description),
+  },
+  {
+    name: "service_offers_Option_description",
+    weight: 1.2,
+    getFn: (makeupArtiste) =>
+      makeupArtiste.service_offers.map((Option) => Option.description),
+  },
+  {
+    name: "courses_course_description",
+    weight: 0.5,
+    getFn: (makeupArtiste) =>
+      makeupArtiste.courses.map((course) => course.course_description),
+  },
+  {
+    name: "experiences_description",
+    weight: 0.5,
+    getFn: (makeupArtiste) =>
+      makeupArtiste.experiences.map((experience) => experience.description),
+  },
+  {
+    name: "last_name",
+    weight: 0.2,
+  },
+  {
+    name: "first_name",
+    weight: 0.2,
+  },
+];
 
 /**
  * searching service
  */
 
 module.exports = {
-  searchingMakeup: async (user) => {
+  searchingMakeup: async (user, params) => {
     try {
-      if (!user) {
-        throw new Error("User not found");
-      }
-
-      // find if makeup artist already exists for user
-      const existing = await strapi.entityService.findMany(
+      const allMakeupArtiste = await strapi.entityService.findMany(
         "api::makeup-artiste.makeup-artiste",
         {
-          fields: ["id"],
+          populate: [
+            "skills",
+            "experiences",
+            "courses",
+            "service_offers",
+            "network",
+          ],
           filters: {
-            user: {
-              id: {
-                $eq: user.id,
-              },
+            available: {
+              $eq: true,
             },
           },
         }
       );
 
-      if (existing) {
-        throw new Error("Makeup artist already exists for user");
+      if (!allMakeupArtiste) {
+        throw new Error("No makeup artiste found");
       }
 
-      // create a new makeup artist for user id
+      // map params "search" field to match the keys in balancedKeys
+      params = {
+        speciality: params.search ?? "",
+        city: params.city ?? params.search,
+        skills_name: params.search ?? "",
+        skills_description: params.search ?? "",
+        description: params.search ?? "",
+        service_offers_description: params.search ?? "",
+        service_offers_Option_description: params.search ?? "",
+        courses_course_description: params.search ?? "",
+        experiences_description: params.search ?? "",
+        last_name: params.search ?? "",
+        first_name: params.search ?? "",
+      };
 
-      const makeupArtiste = await strapi.entityService.create(
-        "api::makeup-artiste.makeup-artiste",
-        {
-          data: {
-            user: {
-              connect: [{ id: user.id }],
-            },
-          },
-        }
-      );
+      // create a new fuse instance
+      const fuse = new Fuse(allMakeupArtiste, {
+        keys: balancedKeys,
+        threshold: 1,
+        includeScore: true,
+        findAllMatches: true,
+        ignoreLocation: true,
+        ignoreFieldNorm: true,
+      });
 
-      return makeupArtiste;
+      // search for the user
+      const result = fuse.search(params);
+      console.log(result);
+
+      return result;
     } catch (err) {
+      console.log(err);
       throw err;
     }
   },

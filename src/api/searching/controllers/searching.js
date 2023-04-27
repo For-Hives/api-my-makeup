@@ -7,11 +7,13 @@
 module.exports = {
   searchMakeup: async (ctx, next) => {
     try {
+      const params = ctx.request.query;
+
       const data = await strapi
         .service("api::searching.searching")
-        .searchingMakeup(ctx.state.user, json);
+        .searchingMakeup(ctx.state.user, params);
 
-      ctx.body = "ok";
+      ctx.body = data;
     } catch (err) {
       ctx.body = err;
     }

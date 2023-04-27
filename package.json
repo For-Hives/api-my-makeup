@@ -1,8 +1,8 @@
 {
-  "name": "breval-api",
+  "name": "api.my-makeup.fr",
   "private": true,
   "version": "1.0.0",
-  "description": "brev.al api",
+  "description": "api.my-makeup.fr",
   "scripts": {
     "develop": "strapi develop",
     "start": "strapi start",
@@ -24,6 +24,7 @@
     "better-sqlite3": "8.3.0",
     "husky": "^8.0.3",
     "jest": "29.5.0",
+    "lint-staged": "13.2.1",
     "sqlite3": "5.1.6",
     "supertest": "6.3.3",
     "lint-staged": "13.2.2"
@@ -33,6 +34,8 @@
     "@strapi/plugin-i18n": "4.10.1",
     "@strapi/plugin-users-permissions": "4.10.1",
     "@strapi/strapi": "4.10.1",
+    "fuse": "^0.4.0",
+    "fuse.js": "^6.6.2",
     "minio-for-strapi-v4": "1.0.7"
   },
   "author": {
