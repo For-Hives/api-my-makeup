@@ -47,7 +47,7 @@
       "component": "makeupartists.skills"
     },
     "description": {
-      "type": "string"
+      "type": "text"
     },
     "network": {
       "displayName": "network",

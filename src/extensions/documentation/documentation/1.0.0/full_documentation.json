@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2023-04-27T20:11:52.253Z"
+    "x-generation-date": "2023-04-29T14:15:00.593Z"
   },
   "x-strapi-config": {
     "path": "/documentation",
@@ -856,9 +856,6 @@
                                         },
                                         "description": {
                                           "type": "string"
-                                        },
-                                        "used_skills": {
-                                          "type": "string"
                                         }
                                       }
                                     }
@@ -901,19 +898,6 @@
                                         "description": {
                                           "type": "string"
                                         },
-                                        "price": {
-                                          "type": "number",
-                                          "format": "float"
-                                        },
-                                        "pricing_type": {
-                                          "type": "string",
-                                          "enum": [
-                                            "hour",
-                                            "day",
-                                            "package",
-                                            "quote"
-                                          ]
-                                        },
                                         "Options": {
                                           "type": "array",
                                           "items": {
@@ -929,11 +913,13 @@
                                                 "type": "string"
                                               },
                                               "price": {
-                                                "type": "number",
-                                                "format": "float"
+                                                "type": "string"
                                               }
                                             }
                                           }
+                                        },
+                                        "price": {
+                                          "type": "string"
                                         }
                                       }
                                     }
@@ -1990,9 +1976,6 @@
           },
           "description": {
             "type": "string"
-          },
-          "used_skills": {
-            "type": "string"
           }
         }
       },
@@ -2029,19 +2012,6 @@
           "description": {
             "type": "string"
           },
-          "price": {
-            "type": "number",
-            "format": "float"
-          },
-          "pricing_type": {
-            "type": "string",
-            "enum": [
-              "hour",
-              "day",
-              "package",
-              "quote"
-            ]
-          },
           "Options": {
             "type": "array",
             "items": {
@@ -2057,11 +2027,13 @@
                   "type": "string"
                 },
                 "price": {
-                  "type": "number",
-                  "format": "float"
+                  "type": "string"
                 }
               }
             }
+          },
+          "price": {
+            "type": "string"
           }
         }
       },
