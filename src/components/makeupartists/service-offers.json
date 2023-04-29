@@ -12,18 +12,14 @@
     "description": {
       "type": "text"
     },
-    "price": {
-      "type": "decimal"
-    },
-    "pricing_type": {
-      "type": "enumeration",
-      "enum": ["hour", "day", "package", "quote"]
-    },
     "Options": {
       "displayName": "options",
       "type": "component",
       "repeatable": true,
       "component": "service-offers.options"
+    },
+    "price": {
+      "type": "text"
     }
   }
 }

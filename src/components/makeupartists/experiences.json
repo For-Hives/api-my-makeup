@@ -23,9 +23,6 @@
     },
     "description": {
       "type": "text"
-    },
-    "used_skills": {
-      "type": "string"
     }
   }
 }
