@@ -29,10 +29,10 @@ const balancedKeys = [
       makeupArtiste.service_offers.map((service) => service.description),
   },
   {
-    name: "service_offers_Option_description",
+    name: "service_offers_option_description",
     weight: 1.2,
     getFn: (makeupArtiste) =>
-      makeupArtiste.service_offers.map((Option) => Option.description),
+      makeupArtiste.service_offers.map((option) => option.description),
   },
   {
     name: "courses_course_description",
@@ -93,7 +93,7 @@ module.exports = {
         skills_description: params.search ?? "",
         description: params.search ?? "",
         service_offers_description: params.search ?? "",
-        service_offers_Option_description: params.search ?? "",
+        service_offers_option_description: params.search ?? "",
         courses_course_description: params.search ?? "",
         experiences_description: params.search ?? "",
         last_name: params.search ?? "",

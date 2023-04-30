@@ -102,7 +102,23 @@ module.exports = {
     const existing = await strapi.entityService.findMany(
       "api::makeup-artiste.makeup-artiste",
       {
-        populate: "*",
+        populate: {
+          skills: {
+            populate: "*",
+          },
+          experiences: {
+            populate: "*",
+          },
+          courses: {
+            populate: "*",
+          },
+          service_offers: {
+            populate: "*",
+          },
+          network: {
+            populate: "*",
+          },
+        },
         filters: {
           user: {
             id: {
