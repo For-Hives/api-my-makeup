@@ -118,6 +118,15 @@ module.exports = {
           network: {
             populate: "*",
           },
+          language: {
+            populate: "*",
+          },
+          user: {
+            populate: "*",
+          },
+          image_gallery: {
+            populate: "*",
+          },
         },
         filters: {
           user: {
