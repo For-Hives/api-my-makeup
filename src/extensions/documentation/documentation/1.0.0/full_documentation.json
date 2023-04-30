@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2023-04-30T11:04:31.807Z"
+    "x-generation-date": "2023-04-30T12:59:10.194Z"
   },
   "x-strapi-config": {
     "path": "/documentation",
@@ -181,6 +181,9 @@
                 "items": {
                   "$ref": "#/components/schemas/MakeupartistsLanguageComponent"
                 }
+              },
+              "phone": {
+                "type": "string"
               }
             }
           }
@@ -796,6 +799,9 @@
                                         "type": "string"
                                       },
                                       "website": {
+                                        "type": "string"
+                                      },
+                                      "linkedin": {
                                         "type": "string"
                                       }
                                     }
@@ -1438,6 +1444,9 @@
                                       }
                                     }
                                   },
+                                  "phone": {
+                                    "type": "string"
+                                  },
                                   "createdAt": {
                                     "type": "string",
                                     "format": "date-time"
@@ -1839,6 +1848,9 @@
               "$ref": "#/components/schemas/MakeupartistsLanguageComponent"
             }
           },
+          "phone": {
+            "type": "string"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -1935,6 +1947,9 @@
             "type": "string"
           },
           "website": {
+            "type": "string"
+          },
+          "linkedin": {
             "type": "string"
           }
         }
