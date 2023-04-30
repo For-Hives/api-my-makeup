@@ -13,6 +13,6 @@ it("strapi is defined", () => {
   expect(strapi).toBeDefined();
 });
 
-require("./user");
+require("./controllers/user");
 // todo fix this test
-// require("./my-makeup");
+// require("./controllers/my-makeup");

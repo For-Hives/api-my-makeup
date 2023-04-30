@@ -133,6 +133,6 @@ module.exports = {
     }
 
     // return the makeup artist linked to user
-    return existing;
+    return existing[0];
   },
 };

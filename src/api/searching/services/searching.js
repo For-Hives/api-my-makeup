@@ -61,8 +61,12 @@ const balancedKeys = [
  */
 
 module.exports = {
-  searchingMakeup: async (user, params) => {
+  searchingMakeup: async (params) => {
     try {
+      if (!params) {
+        throw new Error("No search parameters found");
+      }
+
       const allMakeupArtiste = await strapi.entityService.findMany(
         "api::makeup-artiste.makeup-artiste",
         {
