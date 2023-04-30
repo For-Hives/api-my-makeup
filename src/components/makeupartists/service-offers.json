@@ -12,7 +12,7 @@
     "description": {
       "type": "text"
     },
-    "Options": {
+    "options": {
       "displayName": "options",
       "type": "component",
       "repeatable": true,
