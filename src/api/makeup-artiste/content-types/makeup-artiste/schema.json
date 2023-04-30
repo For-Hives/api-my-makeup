@@ -34,9 +34,6 @@
     "score": {
       "type": "decimal"
     },
-    "mileage_charge": {
-      "type": "decimal"
-    },
     "available": {
       "type": "boolean"
     },

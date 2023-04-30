@@ -107,10 +107,6 @@
                 "type": "number",
                 "format": "float"
               },
-              "mileage_charge": {
-                "type": "number",
-                "format": "float"
-              },
               "available": {
                 "type": "boolean"
               },
@@ -258,10 +254,6 @@
             "type": "integer"
           },
           "score": {
-            "type": "number",
-            "format": "float"
-          },
-          "mileage_charge": {
             "type": "number",
             "format": "float"
           },
@@ -765,10 +757,6 @@
                                     "type": "integer"
                                   },
                                   "score": {
-                                    "type": "number",
-                                    "format": "float"
-                                  },
-                                  "mileage_charge": {
                                     "type": "number",
                                     "format": "float"
                                   },
