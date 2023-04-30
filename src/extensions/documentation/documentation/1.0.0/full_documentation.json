@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2023-04-29T14:15:00.593Z"
+    "x-generation-date": "2023-04-30T11:04:31.807Z"
   },
   "x-strapi-config": {
     "path": "/documentation",
@@ -104,10 +104,6 @@
                 "type": "integer"
               },
               "score": {
-                "type": "number",
-                "format": "float"
-              },
-              "mileage_charge": {
                 "type": "number",
                 "format": "float"
               },
@@ -255,10 +251,6 @@
             "type": "integer"
           },
           "score": {
-            "type": "number",
-            "format": "float"
-          },
-          "mileage_charge": {
             "type": "number",
             "format": "float"
           },
@@ -762,10 +754,6 @@
                                     "type": "integer"
                                   },
                                   "score": {
-                                    "type": "number",
-                                    "format": "float"
-                                  },
-                                  "mileage_charge": {
                                     "type": "number",
                                     "format": "float"
                                   },
