@@ -103,6 +103,9 @@ module.exports = {
       "api::makeup-artiste.makeup-artiste",
       {
         populate: {
+          main_picture:{
+            populate: "*",
+          },
           skills: {
             populate: "*",
           },
