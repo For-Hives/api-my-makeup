@@ -1,9 +1,9 @@
 const {
   searchingMakeup,
 } = require("../../../src/api/searching/services/searching");
-const { describe, expect, it, beforeAll, afterAll } = require("@jest/globals");
+const {describe, expect, it, beforeAll, afterAll} = require("@jest/globals");
 const fs = require("fs");
-const { setupStrapi, stopStrapi } = require("../../helpers/strapi");
+const {setupStrapi, stopStrapi} = require("../../helpers/strapi");
 
 describe("test du service searching", () => {
   beforeAll(async () => {
@@ -26,6 +26,7 @@ describe("test du service searching", () => {
     });
 
     // todo : test search params if it is empty
+
 
     // it("should return all makeup artiste if search params is empty", async () => {
     //   const allMakeupArtiste = await strapi.entityService.findMany(
