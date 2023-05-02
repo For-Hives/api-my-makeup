@@ -5,7 +5,7 @@ const {
 } = require("../../../src/api/makeup-artiste/services/init-makeup");
 const { describe, expect, it, beforeAll, afterAll } = require("@jest/globals");
 const fs = require("fs");
-const { setupStrapi, cleanupStrapi } = require("../../helpers/strapi");
+const { setupStrapi, stopStrapi } = require("../../helpers/strapi");
 
 describe("test du service init-makeup", () => {
   beforeAll(async () => {
@@ -13,7 +13,7 @@ describe("test du service init-makeup", () => {
   }, 20000);
 
   afterAll(async () => {
-    await cleanupStrapi();
+    await stopStrapi();
   });
 
   it("strapi is defined", () => {

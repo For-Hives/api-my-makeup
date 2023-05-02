@@ -3,7 +3,7 @@ const {
 } = require("../../../src/api/searching/services/searching");
 const { describe, expect, it, beforeAll, afterAll } = require("@jest/globals");
 const fs = require("fs");
-const { setupStrapi, cleanupStrapi } = require("../../helpers/strapi");
+const { setupStrapi, stopStrapi } = require("../../helpers/strapi");
 
 describe("test du service searching", () => {
   beforeAll(async () => {
@@ -11,7 +11,7 @@ describe("test du service searching", () => {
   }, 20000);
 
   afterAll(async () => {
-    await cleanupStrapi();
+    await stopStrapi();
   });
 
   it("strapi is defined", () => {
