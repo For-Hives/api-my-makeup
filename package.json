@@ -29,10 +29,10 @@
     "lint-staged": "13.2.2"
   },
   "dependencies": {
-    "@strapi/plugin-documentation": "4.10.1",
-    "@strapi/plugin-i18n": "4.10.1",
-    "@strapi/plugin-users-permissions": "4.10.1",
-    "@strapi/strapi": "4.10.1",
+    "@strapi/plugin-documentation": "4.10.2",
+    "@strapi/plugin-i18n": "4.10.2",
+    "@strapi/plugin-users-permissions": "4.10.2",
+    "@strapi/strapi": "4.10.2",
     "fuse": "0.4.0",
     "fuse.js": "6.6.2",
     "minio-for-strapi-v4": "1.0.7"
