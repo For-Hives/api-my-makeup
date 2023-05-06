@@ -4,8 +4,8 @@ module.exports = {
   routes: [
     {
       method: "POST",
-      path: "/init-makeup",
-      handler: "init-makeup.initMakeup",
+      path: "/me-makeup",
+      handler: "me-makeup.initMakeup",
       config: {
         policies: [],
         middlewares: [],
@@ -13,8 +13,8 @@ module.exports = {
     },
     {
       method: "PATCH",
-      path: "/update-makeup",
-      handler: "init-makeup.updateMakeup",
+      path: "/me-makeup",
+      handler: "me-makeup.updateMakeup",
       config: {
         policies: [],
         middlewares: [],
@@ -23,7 +23,7 @@ module.exports = {
     {
       method: "GET",
       path: "/me-makeup",
-      handler: "init-makeup.meMakeup",
+      handler: "me-makeup.meMakeup",
       config: {
         policies: [],
         middlewares: [],

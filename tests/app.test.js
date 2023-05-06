@@ -1,18 +1,18 @@
 const fs = require("fs");
-const { setupStrapi, cleanupStrapi } = require("./helpers/strapi");
-const { beforeAll, afterAll, expect } = require("@jest/globals");
+const {setupStrapi, stopStrapi} = require("./helpers/strapi");
+const {beforeAll, afterAll, expect} = require("@jest/globals");
 beforeAll(async () => {
   await setupStrapi();
 }, 20000);
 
 afterAll(async () => {
-  await cleanupStrapi();
+  await stopStrapi();
 });
 
 it("strapi is defined", () => {
   expect(strapi).toBeDefined();
 });
 
-require("./user");
+require("./controllers/user");
 // todo fix this test
-// require("./my-makeup");
+// require("./controllers/my-makeup");

@@ -1,5 +1,37 @@
 const request = require("supertest");
-const { expect } = require("@jest/globals");
+const { expect, beforeAll } = require("@jest/globals");
+const { grantPrivilege } = require("../../helpers/strapi");
+
+// beforeAll create jwt
+
+let jwt;
+let user;
+
+beforeAll(async () => {
+  await grantPrivilege(
+    2,
+    "permissions.application.controllers.makeup-artiste.initMakeup"
+  ); // Gives Public access to endpoint
+
+  /** Gets the default user role */
+  const defaultRole = await strapi
+    .query("plugin::users-permissions.role")
+    .findOne({}, []);
+
+  const role = defaultRole ? defaultRole.id : null;
+
+  /** Creates a new user an push to database */
+  user = await strapi.plugins["users-permissions"].services.user.add({
+    ...mockUserData,
+    username: "tester66",
+    email: "tester66@strapi.com",
+    role,
+  });
+
+  jwt = strapi.plugins["users-permissions"].services.jwt.issue({
+    id: user.id,
+  });
+});
 
 // user mock data
 const mockUserData = {
@@ -80,5 +112,21 @@ it("should throw an error if makeup artist already exists for the authenticated 
     .expect(400)
     .then((data) => {
       expect(data.body.message).toBe("Makeup artist already exists for user");
+    });
+});
+
+it("XXX should return users data for authenticated user", async () => {
+  await request(strapi.server.httpServer) // app server is an instance of Class: http.Server
+    .post("/api/init-makeup")
+    .set("accept", "application/json")
+    .set("Content-Type", "application/json")
+    .set("Authorization", "Bearer " + jwt)
+    .expect("Content-Type", /json/)
+    .expect(200)
+    .then((data) => {
+      expect(data.body).toBeDefined();
+      expect(data.body.id).toBe(user.id);
+      expect(data.body.username).toBe(user.username);
+      expect(data.body.email).toBe(user.email);
     });
 });

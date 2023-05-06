@@ -4,55 +4,37 @@ const Fuse = require("fuse.js");
 const balancedKeys = [
   {
     name: "speciality",
-    weight: 2,
+    weight: 0.8,
   },
   {
     name: "city",
-    weight: 3,
+    weight: 1,
   },
   {
     name: "skills_name",
-    weight: 1.5,
-    getFn: (makeupArtiste) => makeupArtiste.skills.map((skill) => skill.name),
+    weight: 0.4,
+    getFn: (makeupArtiste) => makeupArtiste.skills?.map((skill) => skill.name),
   },
   {
     name: "skills_description",
-    weight: 1.5,
+    weight: 0.4,
     getFn: (makeupArtiste) =>
-      makeupArtiste.skills.map((skill) => skill.short_description),
+      makeupArtiste.skills?.map((skill) => skill.short_description),
   },
   "description",
   {
     name: "service_offers_description",
-    weight: 1.5,
+    weight: 0.4,
     getFn: (makeupArtiste) =>
-      makeupArtiste.service_offers.map((service) => service.description),
-  },
-  {
-    name: "service_offers_option_description",
-    weight: 1.2,
-    getFn: (makeupArtiste) =>
-      makeupArtiste.service_offers.map((option) => option.description),
-  },
-  {
-    name: "courses_course_description",
-    weight: 0.5,
-    getFn: (makeupArtiste) =>
-      makeupArtiste.courses.map((course) => course.course_description),
-  },
-  {
-    name: "experiences_description",
-    weight: 0.5,
-    getFn: (makeupArtiste) =>
-      makeupArtiste.experiences.map((experience) => experience.description),
+      makeupArtiste.service_offers?.map((service) => service.description),
   },
   {
     name: "last_name",
-    weight: 0.2,
+    weight: 0.1,
   },
   {
     name: "first_name",
-    weight: 0.2,
+    weight: 0.1,
   },
 ];
 
@@ -61,8 +43,12 @@ const balancedKeys = [
  */
 
 module.exports = {
-  searchingMakeup: async (user, params) => {
+  searchingMakeup: async (params) => {
     try {
+      if (!params) {
+        throw new Error("No search parameters found");
+      }
+
       const allMakeupArtiste = await strapi.entityService.findMany(
         "api::makeup-artiste.makeup-artiste",
         {
@@ -93,9 +79,7 @@ module.exports = {
         skills_description: params.search ?? "",
         description: params.search ?? "",
         service_offers_description: params.search ?? "",
-        service_offers_option_description: params.search ?? "",
-        courses_course_description: params.search ?? "",
-        experiences_description: params.search ?? "",
+        // todo : social network
         last_name: params.search ?? "",
         first_name: params.search ?? "",
       };
@@ -103,15 +87,26 @@ module.exports = {
       // create a new fuse instance
       const fuse = new Fuse(allMakeupArtiste, {
         keys: balancedKeys,
-        threshold: 1,
+        threshold: 1, // Increase the threshold value
+        distance: 5000, // Increase the distance value
         includeScore: true,
         findAllMatches: true,
         ignoreLocation: true,
-        ignoreFieldNorm: true,
       });
 
       // search for the user
-      return fuse.search(params);
+      const results = fuse.search(params);
+
+      // Get the item IDs from the search results
+      const resultIDs = results.map((result) => result.item.id);
+
+      // Get the items missing from the search results
+      const missingItems = allMakeupArtiste.filter(
+        (item) => !resultIDs.includes(item.id)
+      );
+
+      // Add the missing items to the end of the search results
+      return [...results, ...missingItems.map((item) => ({ item, score: 1 }))];
     } catch (err) {
       throw err;
     }
