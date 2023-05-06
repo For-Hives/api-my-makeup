@@ -2,7 +2,7 @@ const {
   createMakeupArtist,
   updateMakeupArtist,
   meMakeupArtist,
-} = require("../../../src/api/makeup-artiste/services/init-makeup");
+} = require("../../../src/api/makeup-artiste/services/me-makeup");
 const { describe, expect, it, beforeAll, afterAll } = require("@jest/globals");
 const fs = require("fs");
 const { setupStrapi, stopStrapi } = require("../../helpers/strapi");
