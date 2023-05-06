@@ -106,6 +106,9 @@ describe("test du service init-makeup", () => {
 
       strapi.entityService = {
         findMany: jest.fn().mockResolvedValue(existing),
+        findOne: jest
+          .fn()
+          .mockResolvedValue({ ...existing[0], last_name: "Jones" }),
         update: jest.fn().mockResolvedValue({
           id: 1,
           last_name: "Jones",
