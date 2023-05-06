@@ -8,7 +8,7 @@ module.exports = {
   async initMakeup(ctx, next) {
     try {
       const data = await strapi
-        .service("api::makeup-artiste.init-makeup")
+        .service("api::makeup-artiste.me-makeup")
         .createMakeupArtist(ctx.state.user);
 
       ctx.body = data;
@@ -24,7 +24,7 @@ module.exports = {
       const json = ctx.request.body;
 
       const data = await strapi
-        .service("api::makeup-artiste.init-makeup")
+        .service("api::makeup-artiste.me-makeup")
         .updateMakeupArtist(ctx.state.user, json);
 
       ctx.body = data;
@@ -38,7 +38,7 @@ module.exports = {
   async meMakeup(ctx, next) {
     try {
       const data = await strapi
-        .service("api::makeup-artiste.init-makeup")
+        .service("api::makeup-artiste.me-makeup")
         .meMakeupArtist(ctx.state.user);
 
       ctx.body = data;
