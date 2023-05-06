@@ -63,33 +63,20 @@ module.exports = {
       throw new Error("Makeup artist does not exist for this user");
     }
 
-    // Prepare update data
-    const updateData = {
-      speciality: json.speciality,
-      city: json.city,
-      action_radius: json.action_radius,
-      score: json.score,
-      mileage_charge: json.mileage_charge,
-      available: json.available,
-      description: json.description,
-      last_name: json.last_name,
-      first_name: json.first_name,
-      skills: json.skills,
-      network: json.network,
-      experiences: json.experiences,
-      courses: json.courses,
-      service_offers: json.service_offers,
-      image_gallery: json.image_gallery,
-      main_picture: json.main_picture,
-      language: json.language,
-    };
-
     // update the makeup artist linked to user
-    return strapi.entityService.update(
+    let updated = await strapi.entityService.update(
       "api::makeup-artiste.makeup-artiste",
       existing[0].id, // id of makeup artist linked to user
       {
-        data: updateData,
+        data: json,
+      }
+    );
+
+    return strapi.entityService.findOne(
+      "api::makeup-artiste.makeup-artiste",
+      updated.id,
+      {
+        populate: "*",
       }
     );
   },
@@ -103,7 +90,7 @@ module.exports = {
       "api::makeup-artiste.makeup-artiste",
       {
         populate: {
-          main_picture:{
+          main_picture: {
             populate: "*",
           },
           skills: {
