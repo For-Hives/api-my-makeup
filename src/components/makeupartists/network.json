@@ -20,6 +20,12 @@
     },
     "linkedin": {
       "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
     }
   }
 }

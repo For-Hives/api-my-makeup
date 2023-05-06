@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2023-05-06T17:41:51.442Z"
+    "x-generation-date": "2023-05-06T18:02:03.258Z"
   },
   "x-strapi-config": {
     "path": "/documentation",
@@ -181,9 +181,6 @@
                 "items": {
                   "$ref": "#/components/schemas/MakeupartistsLanguageComponent"
                 }
-              },
-              "phone": {
-                "type": "string"
               }
             }
           }
@@ -774,7 +771,7 @@
                                         "name": {
                                           "type": "string"
                                         },
-                                        "short_description": {
+                                        "description": {
                                           "type": "string"
                                         }
                                       }
@@ -802,6 +799,12 @@
                                         "type": "string"
                                       },
                                       "linkedin": {
+                                        "type": "string"
+                                      },
+                                      "phone": {
+                                        "type": "string"
+                                      },
+                                      "email": {
                                         "type": "string"
                                       }
                                     }
@@ -1444,9 +1447,6 @@
                                       }
                                     }
                                   },
-                                  "phone": {
-                                    "type": "string"
-                                  },
                                   "createdAt": {
                                     "type": "string",
                                     "format": "date-time"
@@ -1848,9 +1848,6 @@
               "$ref": "#/components/schemas/MakeupartistsLanguageComponent"
             }
           },
-          "phone": {
-            "type": "string"
-          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -1926,7 +1923,7 @@
           "name": {
             "type": "string"
           },
-          "short_description": {
+          "description": {
             "type": "string"
           }
         }
@@ -1950,6 +1947,12 @@
             "type": "string"
           },
           "linkedin": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
             "type": "string"
           }
         }

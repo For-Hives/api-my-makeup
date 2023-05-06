@@ -1,14 +1,15 @@
 {
   "collectionName": "components_makeupartists_skills",
   "info": {
-    "displayName": "skills"
+    "displayName": "skills",
+    "description": ""
   },
   "options": {},
   "attributes": {
     "name": {
       "type": "string"
     },
-    "short_description": {
+    "description": {
       "type": "string"
     }
   }

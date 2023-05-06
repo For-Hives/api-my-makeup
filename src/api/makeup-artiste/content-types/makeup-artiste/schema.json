@@ -97,9 +97,6 @@
       "type": "component",
       "repeatable": true,
       "component": "makeupartists.language"
-    },
-    "phone": {
-      "type": "string"
     }
   }
 }
