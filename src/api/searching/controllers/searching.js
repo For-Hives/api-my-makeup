@@ -15,7 +15,9 @@ module.exports = {
 
       ctx.body = data;
     } catch (err) {
-      ctx.body = err;
+      ctx.badRequest("searching error", {
+        moreDetails: err.message,
+      });
     }
   },
 };
