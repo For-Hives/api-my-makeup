@@ -71,6 +71,9 @@ module.exports = {
             "courses",
             "service_offers",
             "network",
+            "image_gallery",
+            "main_picture",
+            "language",
           ],
           filters: {
             available: {
