@@ -36,6 +36,12 @@ module.exports = {
         user: {
           connect: [{ id: user.id }],
         },
+        first_name: "",
+        last_name: "",
+        speciality: "",
+        city: "",
+        network: {},
+        description: "",
       },
     });
   },
