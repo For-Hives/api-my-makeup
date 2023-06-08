@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2023-06-08T10:26:54.338Z"
+    "x-generation-date": "2023-06-08T12:37:26.733Z"
   },
   "x-strapi-config": {
     "path": "/documentation",
@@ -126,6 +126,9 @@
                 "type": "string"
               },
               "slug": {
+                "type": "string"
+              },
+              "excerpt": {
                 "type": "string"
               }
             }
@@ -829,6 +832,9 @@
             "type": "string"
           },
           "slug": {
+            "type": "string"
+          },
+          "excerpt": {
             "type": "string"
           },
           "createdAt": {
