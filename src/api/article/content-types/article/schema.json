@@ -48,6 +48,9 @@
     "slug": {
       "type": "string",
       "required": true
+    },
+    "excerpt": {
+      "type": "text"
     }
   }
 }
