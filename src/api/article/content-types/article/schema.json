@@ -4,7 +4,8 @@
   "info": {
     "singularName": "article",
     "pluralName": "articles",
-    "displayName": "Article"
+    "displayName": "Article",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -21,14 +22,23 @@
       "type": "string"
     },
     "galery": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
       "allowedTypes": [
         "images",
         "files",
         "videos",
         "audios"
-      ],
-      "type": "media",
-      "multiple": true
+      ]
+    },
+    "seo_title": {
+      "type": "string",
+      "maxLength": 70
+    },
+    "seo_description": {
+      "type": "string",
+      "maxLength": 120
     }
   }
 }
