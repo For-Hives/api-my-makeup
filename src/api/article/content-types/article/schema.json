@@ -13,13 +13,16 @@
   "pluginOptions": {},
   "attributes": {
     "title": {
-      "type": "string"
+      "type": "string",
+      "required": true
     },
     "content": {
-      "type": "richtext"
+      "type": "richtext",
+      "required": true
     },
     "author": {
-      "type": "string"
+      "type": "string",
+      "required": true
     },
     "galery": {
       "type": "media",
@@ -34,11 +37,17 @@
     },
     "seo_title": {
       "type": "string",
-      "maxLength": 70
+      "maxLength": 70,
+      "required": true
     },
     "seo_description": {
       "type": "string",
-      "maxLength": 120
+      "maxLength": 120,
+      "required": true
+    },
+    "slug": {
+      "type": "string",
+      "required": true
     }
   }
 }
