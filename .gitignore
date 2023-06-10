@@ -79,6 +79,7 @@ $RECYCLE.BIN/
 *#
 ssl
 .idea
+api-my-makeup.iml
 nbproject
 public/uploads/*
 !public/uploads/.gitkeep
