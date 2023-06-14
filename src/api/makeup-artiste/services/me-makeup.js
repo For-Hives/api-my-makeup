@@ -40,6 +40,7 @@ module.exports = {
         city: "",
         network: {},
         description: "",
+        username: user.username,
       },
     });
   },

@@ -23,8 +23,7 @@
       "minLength": 3
     },
     "speciality": {
-      "type": "string",
-      "default": ""
+      "type": "string"
     },
     "city": {
       "type": "string"
@@ -45,8 +44,7 @@
       "component": "makeupartists.skills"
     },
     "description": {
-      "type": "text",
-      "default": ""
+      "type": "text"
     },
     "network": {
       "displayName": "network",
@@ -100,6 +98,9 @@
       "type": "component",
       "repeatable": true,
       "component": "makeupartists.language"
+    },
+    "username": {
+      "type": "string"
     }
   }
 }
