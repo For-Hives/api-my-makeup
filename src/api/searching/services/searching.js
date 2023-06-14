@@ -62,19 +62,38 @@ module.exports = {
         throw new Error("No search parameters found");
       }
 
-      const allMakeupArtiste = await strapi.entityService.findMany(
+      const allMakeupArtisteUsers = await strapi.entityService.findMany(
         "api::makeup-artiste.makeup-artiste",
         {
-          populate: [
-            "skills",
-            "experiences",
-            "courses",
-            "service_offers",
-            "network",
-            "image_gallery",
-            "main_picture",
-            "language",
-          ],
+          populate: {
+            main_picture: {
+              populate: "*",
+            },
+            skills: {
+              populate: "*",
+            },
+            experiences: {
+              populate: "*",
+            },
+            courses: {
+              populate: "*",
+            },
+            service_offers: {
+              populate: "*",
+            },
+            network: {
+              populate: "*",
+            },
+            language: {
+              populate: "*",
+            },
+            user: {
+              select: ["username"],
+            },
+            image_gallery: {
+              populate: "*",
+            },
+          },
           filters: {
             available: {
               $eq: true,
@@ -82,6 +101,11 @@ module.exports = {
           },
         }
       );
+
+      const allMakeupArtiste = allMakeupArtisteUsers.map((makeupArtiste) => ({
+        ...makeupArtiste,
+        user: { username: makeupArtiste.user?.username },
+      }));
 
       if (!allMakeupArtiste) {
         throw new Error("No makeup artiste found");
@@ -376,14 +400,15 @@ module.exports = {
           ...allMakeupArtiste.find(
             (makeupArtiste) => String(makeupArtiste.id) === key
           ),
-          score: scoreTotalByID[key],
+          search_score: scoreTotalByID[key],
         });
       }
 
       // return the makeup artiste sorted by score
       let res = makeupArtisteWithScore
-        .sort((a, b) => a.score - b.score)
-        .filter((makeupArtiste) => makeupArtiste.score <= 12);
+        .sort((a, b) => a.search_score - b.search_score)
+        .filter((makeupArtiste) => makeupArtiste.search_score <= 12)
+        .slice(0, 100);
 
       return res;
     } catch (err) {
