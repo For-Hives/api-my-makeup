@@ -14,7 +14,7 @@
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
     },
-    "x-generation-date": "2023-06-14T09:05:52.245Z"
+    "x-generation-date": "2023-06-14T13:52:44.172Z"
   },
   "x-strapi-config": {
     "path": "/documentation",
@@ -25,7 +25,7 @@
   },
   "servers": [
     {
-      "url": "http://0.0.0.0:1337/api",
+      "url": "http://localhost:1337/api",
       "description": "Development server"
     }
   ],
@@ -1016,6 +1016,9 @@
                 "items": {
                   "$ref": "#/components/schemas/MakeupartistsLanguageComponent"
                 }
+              },
+              "username": {
+                "type": "string"
               }
             }
           }
@@ -2282,6 +2285,9 @@
                                       }
                                     }
                                   },
+                                  "username": {
+                                    "type": "string"
+                                  },
                                   "createdAt": {
                                     "type": "string",
                                     "format": "date-time"
@@ -2682,6 +2688,9 @@
             "items": {
               "$ref": "#/components/schemas/MakeupartistsLanguageComponent"
             }
+          },
+          "username": {
+            "type": "string"
           },
           "createdAt": {
             "type": "string",
