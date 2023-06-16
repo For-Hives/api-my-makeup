@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "talents",
+  "info": {
+    "singularName": "talent",
+    "pluralName": "talents",
+    "displayName": "Talent"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "seo_title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "seo_description": {
+      "type": "text"
+    },
+    "content": {
+      "type": "richtext"
+    },
+    "slug": {
+      "type": "string"
+    }
+  }
+}
