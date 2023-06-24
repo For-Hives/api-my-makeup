@@ -103,7 +103,8 @@
       "type": "string"
     },
     "pro": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     }
   }
 }
