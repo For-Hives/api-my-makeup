@@ -101,6 +101,10 @@
     },
     "username": {
       "type": "string"
+    },
+    "pro": {
+      "type": "boolean",
+      "default": false
     }
   }
 }
