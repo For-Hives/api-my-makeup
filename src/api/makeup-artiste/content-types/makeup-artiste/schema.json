@@ -105,6 +105,9 @@
     "pro": {
       "type": "boolean",
       "default": false
+    },
+    "company_artist_name": {
+      "type": "string"
     }
   }
 }
