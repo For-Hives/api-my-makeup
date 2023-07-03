@@ -7,13 +7,16 @@
   "options": {},
   "attributes": {
     "company": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 70
     },
     "job_name": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 70
     },
     "city": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 70
     },
     "date_start": {
       "type": "date"
@@ -22,7 +25,8 @@
       "type": "date"
     },
     "description": {
-      "type": "text"
+      "type": "text",
+      "maxLength": 2000
     }
   }
 }

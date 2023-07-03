@@ -7,10 +7,12 @@
   "options": {},
   "attributes": {
     "name": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 70
     },
     "description": {
-      "type": "string"
+      "type": "text",
+      "maxLength": 2000
     }
   }
 }

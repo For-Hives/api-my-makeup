@@ -7,16 +7,19 @@
   "options": {},
   "attributes": {
     "diploma": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 70
     },
     "school": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 70
     },
     "date_graduation": {
       "type": "date"
     },
     "course_description": {
-      "type": "text"
+      "type": "text",
+      "maxLength": 2000
     }
   }
 }

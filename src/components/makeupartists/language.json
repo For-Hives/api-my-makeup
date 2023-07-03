@@ -1,12 +1,14 @@
 {
   "collectionName": "components_makeupartists_languages",
   "info": {
-    "displayName": "language"
+    "displayName": "language",
+    "description": ""
   },
   "options": {},
   "attributes": {
     "name": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 70
     }
   }
 }

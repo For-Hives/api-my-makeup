@@ -15,18 +15,22 @@
     "last_name": {
       "type": "string",
       "required": false,
-      "minLength": 3
+      "minLength": 3,
+      "maxLength": 70
     },
     "first_name": {
       "type": "string",
       "required": false,
-      "minLength": 3
+      "minLength": 3,
+      "maxLength": 70
     },
     "speciality": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 70
     },
     "city": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 70
     },
     "action_radius": {
       "type": "integer"
@@ -44,7 +48,8 @@
       "component": "makeupartists.skills"
     },
     "description": {
-      "type": "text"
+      "type": "text",
+      "maxLength": 2000
     },
     "network": {
       "displayName": "network",
@@ -100,14 +105,16 @@
       "component": "makeupartists.language"
     },
     "username": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 70
     },
     "pro": {
       "type": "boolean",
       "default": false
     },
     "company_artist_name": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 70
     }
   }
 }

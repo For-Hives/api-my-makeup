@@ -10,10 +10,12 @@
       "type": "string"
     },
     "description": {
-      "type": "text"
+      "type": "text",
+      "maxLength": 2000
     },
     "price": {
-      "type": "text"
+      "type": "text",
+      "maxLength": 70
     }
   }
 }

@@ -7,25 +7,32 @@
   "options": {},
   "attributes": {
     "youtube": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 200
     },
     "facebook": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 200
     },
     "instagram": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 200
     },
     "website": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 200
     },
     "linkedin": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 200
     },
     "phone": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 20
     },
     "email": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 200
     }
   }
 }
