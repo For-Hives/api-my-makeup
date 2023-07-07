@@ -83,6 +83,15 @@ module.exports = {
             },
             network: {
               populate: "*",
+              filter: {
+                $or: [
+                  {
+                    phone: {
+                      $notNull: true,
+                    },
+                  },
+                ],
+              },
             },
             language: {
               populate: "*",
@@ -95,12 +104,45 @@ module.exports = {
             },
           },
           filters: {
-            available: {
-              $eq: true,
-            },
+            $and: [
+              {
+                available: true,
+              },
+              {
+                speciality: {
+                  $notNull: true,
+                },
+              },
+              {
+                description: {
+                  $notNull: true,
+                },
+              },
+              {
+                last_name: {
+                  $notNull: true,
+                },
+              },
+              {
+                first_name: {
+                  $notNull: true,
+                },
+              },
+              {
+                city: {
+                  $notNull: true,
+                },
+              },
+            ],
           },
         }
       );
+
+      //
+      //
+      //
+      //
+      //
 
       const allMakeupArtiste = allMakeupArtisteUsers.map((makeupArtiste) => ({
         ...makeupArtiste,

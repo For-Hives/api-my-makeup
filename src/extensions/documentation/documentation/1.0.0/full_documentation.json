@@ -921,6 +921,9 @@
         ],
         "properties": {
           "data": {
+            "required": [
+              "username"
+            ],
             "type": "object",
             "properties": {
               "last_name": {
@@ -1078,6 +1081,9 @@
       },
       "MakeupArtiste": {
         "type": "object",
+        "required": [
+          "username"
+        ],
         "properties": {
           "last_name": {
             "type": "string"
