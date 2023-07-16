@@ -49,11 +49,11 @@ module.exports = {
       });
     }
   },
-  async meDeleteMakeup(ctx, next) {
+  async deleteMakeup(ctx, next) {
     try {
       const data = await strapi
         .service("api::makeup-artiste.me-makeup")
-        .meDeleteMakeupArtist(ctx.state.user);
+        .deleteMakeupArtist(ctx.state.user);
       ctx.body = data;
     } catch (err) {
       console.log(err);

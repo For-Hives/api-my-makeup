@@ -141,7 +141,7 @@ module.exports = {
     return existing[0];
   },
 
-  meDeleteMakeupArtist: async (user) => {
+  deleteMakeupArtist: async (user) => {
     if (!user) {
       throw new Error("User not found");
     }

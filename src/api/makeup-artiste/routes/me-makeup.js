@@ -32,7 +32,7 @@ module.exports = {
     {
       method: "DELETE",
       path: "/me-makeup",
-      handler: "me-makeup.meDeleteMakeup",
+      handler: "me-makeup.deleteMakeup",
       config: {
         policies: [],
         middlewares: [],
