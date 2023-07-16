@@ -29,5 +29,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: "DELETE",
+      path: "/me-makeup",
+      handler: "me-makeup.meDeleteMakeup",
+      config: {
+        policies: [],
+        middlewares: [],
+      }
+    }
   ],
 };
