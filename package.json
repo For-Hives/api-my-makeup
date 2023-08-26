@@ -30,9 +30,9 @@
   },
   "dependencies": {
     "@strapi/plugin-documentation": "4.12.7",
-    "@strapi/plugin-i18n": "4.12.6",
-    "@strapi/plugin-users-permissions": "4.12.6",
-    "@strapi/strapi": "4.12.6",
+    "@strapi/plugin-i18n": "4.12.7",
+    "@strapi/plugin-users-permissions": "4.12.7",
+    "@strapi/strapi": "4.12.7",
     "fuse": "0.4.0",
     "fuse.js": "6.6.2",
     "lodash": "^4.17.21",
