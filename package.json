@@ -33,7 +33,7 @@
     "@strapi/plugin-i18n": "4.15.5",
     "@strapi/plugin-users-permissions": "4.15.5",
     "@strapi/strapi": "4.15.5",
-    "fuse": "0.6.0",
+    "fuse": "0.8.0",
     "fuse.js": "6.6.2",
     "lodash": "^4.17.21",
     "minio-for-strapi-v4": "1.0.7",
