@@ -29,7 +29,7 @@
     "supertest": "6.3.4"
   },
   "dependencies": {
-    "@strapi/plugin-documentation": "4.24.0",
+    "@strapi/plugin-documentation": "4.24.1",
     "@strapi/plugin-i18n": "4.24.1",
     "@strapi/plugin-users-permissions": "4.24.1",
     "@strapi/strapi": "4.24.1",
