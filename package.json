@@ -29,10 +29,10 @@
     "supertest": "7.0.0"
   },
   "dependencies": {
-    "@strapi/plugin-documentation": "4.24.3",
-    "@strapi/plugin-i18n": "4.24.3",
-    "@strapi/plugin-users-permissions": "4.24.3",
-    "@strapi/strapi": "4.24.3",
+    "@strapi/plugin-documentation": "4.24.4",
+    "@strapi/plugin-i18n": "4.24.4",
+    "@strapi/plugin-users-permissions": "4.24.4",
+    "@strapi/strapi": "4.24.4",
     "fuse": "0.12.1",
     "fuse.js": "6.6.2",
     "lodash": "^4.17.21",
