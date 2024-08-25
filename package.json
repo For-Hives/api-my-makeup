@@ -36,7 +36,7 @@
     "fuse": "0.12.1",
     "fuse.js": "6.6.2",
     "lodash": "^4.17.21",
-    "minio-for-strapi-v4": "1.0.7",
+    "strapi-provider-cloudflare-r2": "^0.2.5",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^5.2.0",
