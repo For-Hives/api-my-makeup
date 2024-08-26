@@ -1,49 +1,35 @@
 import type { Schema, Attribute } from '@strapi/strapi';
 
-export interface MakeupartistsCourses extends Schema.Component {
-  collectionName: 'components_makeupartists_courses';
+export interface ServiceOffersOptions extends Schema.Component {
+  collectionName: 'components_service_offers_options';
   info: {
-    displayName: 'Courses';
+    displayName: 'options';
     description: '';
   };
   attributes: {
-    diploma: Attribute.String &
-      Attribute.SetMinMaxLength<{
-        maxLength: 70;
-      }>;
-    school: Attribute.String &
-      Attribute.SetMinMaxLength<{
-        maxLength: 70;
-      }>;
-    date_graduation: Attribute.Date;
-    course_description: Attribute.Text &
+    name: Attribute.String;
+    description: Attribute.Text &
       Attribute.SetMinMaxLength<{
         maxLength: 2000;
+      }>;
+    price: Attribute.Text &
+      Attribute.SetMinMaxLength<{
+        maxLength: 70;
       }>;
   };
 }
 
-export interface MakeupartistsExperiences extends Schema.Component {
-  collectionName: 'components_makeupartists_experiences';
+export interface MakeupartistsSkills extends Schema.Component {
+  collectionName: 'components_makeupartists_skills';
   info: {
-    displayName: 'Experiences';
+    displayName: 'skills';
     description: '';
   };
   attributes: {
-    company: Attribute.String &
+    name: Attribute.String &
       Attribute.SetMinMaxLength<{
         maxLength: 70;
       }>;
-    job_name: Attribute.String &
-      Attribute.SetMinMaxLength<{
-        maxLength: 70;
-      }>;
-    city: Attribute.String &
-      Attribute.SetMinMaxLength<{
-        maxLength: 70;
-      }>;
-    date_start: Attribute.Date;
-    date_end: Attribute.Date;
     description: Attribute.Text &
       Attribute.SetMinMaxLength<{
         maxLength: 2000;
@@ -51,14 +37,20 @@ export interface MakeupartistsExperiences extends Schema.Component {
   };
 }
 
-export interface MakeupartistsLanguage extends Schema.Component {
-  collectionName: 'components_makeupartists_languages';
+export interface MakeupartistsServiceOffers extends Schema.Component {
+  collectionName: 'components_makeupartists_service_offers';
   info: {
-    displayName: 'language';
+    displayName: 'service_offers';
     description: '';
   };
   attributes: {
     name: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 70;
+      }>;
+    description: Attribute.Text;
+    options: Attribute.Component<'service-offers.options', true>;
+    price: Attribute.Text &
       Attribute.SetMinMaxLength<{
         maxLength: 70;
       }>;
@@ -103,10 +95,10 @@ export interface MakeupartistsNetwork extends Schema.Component {
   };
 }
 
-export interface MakeupartistsServiceOffers extends Schema.Component {
-  collectionName: 'components_makeupartists_service_offers';
+export interface MakeupartistsLanguage extends Schema.Component {
+  collectionName: 'components_makeupartists_languages';
   info: {
-    displayName: 'service_offers';
+    displayName: 'language';
     description: '';
   };
   attributes: {
@@ -114,26 +106,30 @@ export interface MakeupartistsServiceOffers extends Schema.Component {
       Attribute.SetMinMaxLength<{
         maxLength: 70;
       }>;
-    description: Attribute.Text;
-    options: Attribute.Component<'service-offers.options', true>;
-    price: Attribute.Text &
-      Attribute.SetMinMaxLength<{
-        maxLength: 70;
-      }>;
   };
 }
 
-export interface MakeupartistsSkills extends Schema.Component {
-  collectionName: 'components_makeupartists_skills';
+export interface MakeupartistsExperiences extends Schema.Component {
+  collectionName: 'components_makeupartists_experiences';
   info: {
-    displayName: 'skills';
+    displayName: 'Experiences';
     description: '';
   };
   attributes: {
-    name: Attribute.String &
+    company: Attribute.String &
       Attribute.SetMinMaxLength<{
         maxLength: 70;
       }>;
+    job_name: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 70;
+      }>;
+    city: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 70;
+      }>;
+    date_start: Attribute.Date;
+    date_end: Attribute.Date;
     description: Attribute.Text &
       Attribute.SetMinMaxLength<{
         maxLength: 2000;
@@ -141,21 +137,25 @@ export interface MakeupartistsSkills extends Schema.Component {
   };
 }
 
-export interface ServiceOffersOptions extends Schema.Component {
-  collectionName: 'components_service_offers_options';
+export interface MakeupartistsCourses extends Schema.Component {
+  collectionName: 'components_makeupartists_courses';
   info: {
-    displayName: 'options';
+    displayName: 'Courses';
     description: '';
   };
   attributes: {
-    name: Attribute.String;
-    description: Attribute.Text &
-      Attribute.SetMinMaxLength<{
-        maxLength: 2000;
-      }>;
-    price: Attribute.Text &
+    diploma: Attribute.String &
       Attribute.SetMinMaxLength<{
         maxLength: 70;
+      }>;
+    school: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 70;
+      }>;
+    date_graduation: Attribute.Date;
+    course_description: Attribute.Text &
+      Attribute.SetMinMaxLength<{
+        maxLength: 2000;
       }>;
   };
 }
@@ -163,13 +163,13 @@ export interface ServiceOffersOptions extends Schema.Component {
 declare module '@strapi/types' {
   export module Shared {
     export interface Components {
-      'makeupartists.courses': MakeupartistsCourses;
-      'makeupartists.experiences': MakeupartistsExperiences;
-      'makeupartists.language': MakeupartistsLanguage;
-      'makeupartists.network': MakeupartistsNetwork;
-      'makeupartists.service-offers': MakeupartistsServiceOffers;
-      'makeupartists.skills': MakeupartistsSkills;
       'service-offers.options': ServiceOffersOptions;
+      'makeupartists.skills': MakeupartistsSkills;
+      'makeupartists.service-offers': MakeupartistsServiceOffers;
+      'makeupartists.network': MakeupartistsNetwork;
+      'makeupartists.language': MakeupartistsLanguage;
+      'makeupartists.experiences': MakeupartistsExperiences;
+      'makeupartists.courses': MakeupartistsCourses;
     }
   }
 }

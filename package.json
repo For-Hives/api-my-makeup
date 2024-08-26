@@ -22,7 +22,7 @@
   "devDependencies": {
     "@jest/globals": "29.7.0",
     "better-sqlite3": "11.2.1",
-    "husky": "^9.0.0",
+    "husky": "9.1.5",
     "jest": "29.7.0",
     "lint-staged": "15.2.9",
     "sqlite3": "5.1.7",
@@ -35,11 +35,11 @@
     "@strapi/strapi": "4.25.8",
     "fuse": "0.12.1",
     "fuse.js": "6.6.2",
-    "lodash": "^4.17.21",
-    "strapi-provider-cloudflare-r2": "^0.2.5",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "react-router-dom": "^5.2.0",
+    "lodash": "4.17.21",
+    "strapi-provider-cloudflare-r2": "0.3.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "5.3.4",
     "styled-components": "5.3.11"
   },
   "author": {

@@ -362,164 +362,6 @@ export interface AdminTransferTokenPermission extends Schema.CollectionType {
   };
 }
 
-export interface ApiArticleArticle extends Schema.CollectionType {
-  collectionName: 'articles';
-  info: {
-    singularName: 'article';
-    pluralName: 'articles';
-    displayName: 'Article';
-    description: '';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    title: Attribute.String & Attribute.Required;
-    content: Attribute.RichText & Attribute.Required;
-    author: Attribute.String & Attribute.Required;
-    galery: Attribute.Media;
-    seo_title: Attribute.String &
-      Attribute.Required &
-      Attribute.SetMinMaxLength<{
-        maxLength: 70;
-      }>;
-    seo_description: Attribute.String &
-      Attribute.Required &
-      Attribute.SetMinMaxLength<{
-        maxLength: 120;
-      }>;
-    slug: Attribute.String & Attribute.Required;
-    excerpt: Attribute.Text;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::article.article',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::article.article',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
-export interface ApiMakeupArtisteMakeupArtiste extends Schema.CollectionType {
-  collectionName: 'makeup_artistes';
-  info: {
-    singularName: 'makeup-artiste';
-    pluralName: 'makeup-artistes';
-    displayName: 'MakeupArtiste';
-    description: '';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    last_name: Attribute.String &
-      Attribute.SetMinMaxLength<{
-        minLength: 3;
-        maxLength: 70;
-      }>;
-    first_name: Attribute.String &
-      Attribute.SetMinMaxLength<{
-        minLength: 3;
-        maxLength: 70;
-      }>;
-    speciality: Attribute.String &
-      Attribute.SetMinMaxLength<{
-        maxLength: 70;
-      }>;
-    city: Attribute.String &
-      Attribute.SetMinMaxLength<{
-        maxLength: 70;
-      }>;
-    action_radius: Attribute.Integer;
-    score: Attribute.Decimal;
-    available: Attribute.Boolean;
-    skills: Attribute.Component<'makeupartists.skills', true>;
-    description: Attribute.Text &
-      Attribute.SetMinMaxLength<{
-        maxLength: 2000;
-      }>;
-    network: Attribute.Component<'makeupartists.network'> &
-      Attribute.DefaultTo<{}>;
-    user: Attribute.Relation<
-      'api::makeup-artiste.makeup-artiste',
-      'oneToOne',
-      'plugin::users-permissions.user'
-    >;
-    experiences: Attribute.Component<'makeupartists.experiences', true>;
-    courses: Attribute.Component<'makeupartists.courses', true>;
-    service_offers: Attribute.Component<'makeupartists.service-offers', true>;
-    image_gallery: Attribute.Media;
-    main_picture: Attribute.Media;
-    language: Attribute.Component<'makeupartists.language', true>;
-    username: Attribute.String &
-      Attribute.SetMinMaxLength<{
-        maxLength: 70;
-      }>;
-    pro: Attribute.Boolean & Attribute.DefaultTo<false>;
-    company_artist_name: Attribute.String &
-      Attribute.SetMinMaxLength<{
-        maxLength: 70;
-      }>;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::makeup-artiste.makeup-artiste',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::makeup-artiste.makeup-artiste',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
-export interface ApiTalentTalent extends Schema.CollectionType {
-  collectionName: 'talents';
-  info: {
-    singularName: 'talent';
-    pluralName: 'talents';
-    displayName: 'Talent';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    title: Attribute.String;
-    seo_title: Attribute.String;
-    description: Attribute.Text;
-    seo_description: Attribute.Text;
-    content: Attribute.RichText;
-    slug: Attribute.String;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::talent.talent',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::talent.talent',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
 export interface PluginUploadFile extends Schema.CollectionType {
   collectionName: 'files';
   info: {
@@ -561,9 +403,12 @@ export interface PluginUploadFile extends Schema.CollectionType {
     folderPath: Attribute.String &
       Attribute.Required &
       Attribute.Private &
-      Attribute.SetMinMax<{
-        min: 1;
-      }>;
+      Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -599,9 +444,12 @@ export interface PluginUploadFolder extends Schema.CollectionType {
   attributes: {
     name: Attribute.String &
       Attribute.Required &
-      Attribute.SetMinMax<{
-        min: 1;
-      }>;
+      Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      >;
     pathId: Attribute.Integer & Attribute.Required & Attribute.Unique;
     parent: Attribute.Relation<
       'plugin::upload.folder',
@@ -620,9 +468,12 @@ export interface PluginUploadFolder extends Schema.CollectionType {
     >;
     path: Attribute.String &
       Attribute.Required &
-      Attribute.SetMinMax<{
-        min: 1;
-      }>;
+      Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -633,6 +484,105 @@ export interface PluginUploadFolder extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'plugin::upload.folder',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface PluginContentReleasesRelease extends Schema.CollectionType {
+  collectionName: 'strapi_releases';
+  info: {
+    singularName: 'release';
+    pluralName: 'releases';
+    displayName: 'Release';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    name: Attribute.String & Attribute.Required;
+    releasedAt: Attribute.DateTime;
+    scheduledAt: Attribute.DateTime;
+    timezone: Attribute.String;
+    status: Attribute.Enumeration<
+      ['ready', 'blocked', 'failed', 'done', 'empty']
+    > &
+      Attribute.Required;
+    actions: Attribute.Relation<
+      'plugin::content-releases.release',
+      'oneToMany',
+      'plugin::content-releases.release-action'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'plugin::content-releases.release',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'plugin::content-releases.release',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface PluginContentReleasesReleaseAction
+  extends Schema.CollectionType {
+  collectionName: 'strapi_release_actions';
+  info: {
+    singularName: 'release-action';
+    pluralName: 'release-actions';
+    displayName: 'Release Action';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    type: Attribute.Enumeration<['publish', 'unpublish']> & Attribute.Required;
+    entry: Attribute.Relation<
+      'plugin::content-releases.release-action',
+      'morphToOne'
+    >;
+    contentType: Attribute.String & Attribute.Required;
+    locale: Attribute.String;
+    release: Attribute.Relation<
+      'plugin::content-releases.release-action',
+      'manyToOne',
+      'plugin::content-releases.release'
+    >;
+    isEntryValid: Attribute.Boolean;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'plugin::content-releases.release-action',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'plugin::content-releases.release-action',
       'oneToOne',
       'admin::user'
     > &
@@ -818,10 +768,13 @@ export interface PluginI18NLocale extends Schema.CollectionType {
   };
   attributes: {
     name: Attribute.String &
-      Attribute.SetMinMax<{
-        min: 1;
-        max: 50;
-      }>;
+      Attribute.SetMinMax<
+        {
+          min: 1;
+          max: 50;
+        },
+        number
+      >;
     code: Attribute.String & Attribute.Unique;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -840,6 +793,164 @@ export interface PluginI18NLocale extends Schema.CollectionType {
   };
 }
 
+export interface ApiArticleArticle extends Schema.CollectionType {
+  collectionName: 'articles';
+  info: {
+    singularName: 'article';
+    pluralName: 'articles';
+    displayName: 'Article';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    title: Attribute.String & Attribute.Required;
+    content: Attribute.RichText & Attribute.Required;
+    author: Attribute.String & Attribute.Required;
+    galery: Attribute.Media<'images' | 'files' | 'videos' | 'audios', true>;
+    seo_title: Attribute.String &
+      Attribute.Required &
+      Attribute.SetMinMaxLength<{
+        maxLength: 70;
+      }>;
+    seo_description: Attribute.String &
+      Attribute.Required &
+      Attribute.SetMinMaxLength<{
+        maxLength: 120;
+      }>;
+    slug: Attribute.String & Attribute.Required;
+    excerpt: Attribute.Text;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::article.article',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::article.article',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiMakeupArtisteMakeupArtiste extends Schema.CollectionType {
+  collectionName: 'makeup_artistes';
+  info: {
+    singularName: 'makeup-artiste';
+    pluralName: 'makeup-artistes';
+    displayName: 'MakeupArtiste';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    last_name: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        minLength: 3;
+        maxLength: 70;
+      }>;
+    first_name: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        minLength: 3;
+        maxLength: 70;
+      }>;
+    speciality: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 70;
+      }>;
+    city: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 70;
+      }>;
+    action_radius: Attribute.Integer;
+    score: Attribute.Decimal;
+    available: Attribute.Boolean;
+    skills: Attribute.Component<'makeupartists.skills', true>;
+    description: Attribute.Text &
+      Attribute.SetMinMaxLength<{
+        maxLength: 2000;
+      }>;
+    network: Attribute.Component<'makeupartists.network'> &
+      Attribute.DefaultTo<{}>;
+    user: Attribute.Relation<
+      'api::makeup-artiste.makeup-artiste',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    experiences: Attribute.Component<'makeupartists.experiences', true>;
+    courses: Attribute.Component<'makeupartists.courses', true>;
+    service_offers: Attribute.Component<'makeupartists.service-offers', true>;
+    image_gallery: Attribute.Media<'images', true>;
+    main_picture: Attribute.Media<'images'>;
+    language: Attribute.Component<'makeupartists.language', true>;
+    username: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 70;
+      }>;
+    pro: Attribute.Boolean & Attribute.DefaultTo<false>;
+    company_artist_name: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 70;
+      }>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::makeup-artiste.makeup-artiste',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::makeup-artiste.makeup-artiste',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiTalentTalent extends Schema.CollectionType {
+  collectionName: 'talents';
+  info: {
+    singularName: 'talent';
+    pluralName: 'talents';
+    displayName: 'Talent';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    title: Attribute.String;
+    seo_title: Attribute.String;
+    description: Attribute.Text;
+    seo_description: Attribute.Text;
+    content: Attribute.RichText;
+    slug: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::talent.talent',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::talent.talent',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 declare module '@strapi/types' {
   export module Shared {
     export interface ContentTypes {
@@ -850,15 +961,17 @@ declare module '@strapi/types' {
       'admin::api-token-permission': AdminApiTokenPermission;
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
-      'api::article.article': ApiArticleArticle;
-      'api::makeup-artiste.makeup-artiste': ApiMakeupArtisteMakeupArtiste;
-      'api::talent.talent': ApiTalentTalent;
       'plugin::upload.file': PluginUploadFile;
       'plugin::upload.folder': PluginUploadFolder;
+      'plugin::content-releases.release': PluginContentReleasesRelease;
+      'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::users-permissions.permission': PluginUsersPermissionsPermission;
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'plugin::i18n.locale': PluginI18NLocale;
+      'api::article.article': ApiArticleArticle;
+      'api::makeup-artiste.makeup-artiste': ApiMakeupArtisteMakeupArtiste;
+      'api::talent.talent': ApiTalentTalent;
     }
   }
 }
