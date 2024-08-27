@@ -104,3 +104,5 @@ NEXTAUTH_URL=http://localhost:3000/
 12. go in roles and permissions
 13. go in public and check all the boxes in "makeup-artists"
 14. then go in authenticated and check all the boxes everywhere
+15. then go back to localhost:3000/auth/signup and follow the stepper
+16. you should be able to create a makeup artist now
