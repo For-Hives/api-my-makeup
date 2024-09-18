@@ -1,4 +1,12 @@
-# 🚀 Getting started with Strapi
+Certainly! I'll create a README for the My-Makeup API project, incorporating the information from the provided paste and keeping the essential elements. Here's the updated README:
+
+# My-Makeup API 💄
+
+![My-Makeup Logo](https://r2-andycinquin.andy-cinquin.fr/pres_mymakeup_0824c6b79e.webp)
+
+## Project Overview
+
+This is the backend API for My-Makeup, a platform connecting professional makeup artists with clients seeking personalized makeup services. The API is built with Strapi, providing a robust and flexible content management system.
 
 ## 📦 Requirements
 
@@ -12,16 +20,61 @@
 
 ## 🧰 Development
 
-Start your Strapi application with autoReload
-enabled. [Learn more](https://docs.strapi.io/developer-docs/latest/developer-resources/cli/CLI.html#strapi-develop)
+Start your Strapi application with autoReload enabled:
 
 ```
 yarn develop
 ```
 
+## Getting Started
+
+### Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/For-Hives/api-my-makeup.git
+   ```
+
+2. Navigate to the project directory:
+   ```
+   cd api-my-makeup
+   ```
+
+3. Install dependencies:
+   ```
+   yarn install
+   ```
+
+4. Create a `.env` file in the root directory with the following content:
+   ```
+   HOST=0.0.0.0
+   PORT=1337
+   APP_KEYS=key1,key2
+   API_TOKEN_SALT=salt_key
+   ADMIN_JWT_SECRET=secret
+   JWT_SECRET=secret
+
+   DB_CLIENT='sqlite'
+   DB_FILENAME=".tmp/data.db"
+
+   S3_BUCKET='bucket'
+   S3_ACCESS_KEY_ID='ACCESS_KEY_ID'
+   S3_ACCESS_SECRET='S3_ACCESS_SECRET'
+   S3_ENDPOINT='localhost'
+   S3_SSL=false
+   S3_PORT=9000
+   ```
+
+5. Run the development server:
+   ```
+   yarn develop
+   ```
+
+6. Go to `localhost:1337/admin` and create an admin user.
+
 ## ⚙️ Deployment
 
-### CI / CD environments variables
+### CI / CD Environment Variables
 
 | Variable          | Description         |
 | ----------------- | ------------------- |
@@ -35,12 +88,12 @@ yarn develop
 | `S3_PORT`         | Minio port          |
 | `S3_SSL`          | Minio ssl enable    |
 
-### Docker environments variables
+### Docker Environment Variables
 
 | Variable            | Description                                   |
 | ------------------- | --------------------------------------------- |
-| `HOST`              | Straip host listener                          |
-| `PORT`              | Straip port listener                          |
+| `HOST`              | Strapi host listener                          |
+| `PORT`              | Strapi port listener                          |
 | `APP_KEY`           | Set the application key                       |
 | `API_TOKEN_SALT`    | Set the API token salt                        |
 | `ADMIN_JWT_SECRET`  | Set the admin JWT secret                      |
@@ -57,52 +110,32 @@ yarn develop
 | `S3_ACCESS_KEY_ID`  | Minio access key id                           |
 | `S3_ACCESS_SECRET`  | Minio access secret                           |
 
+## Full Stack Development Setup
 
----
+To set up both the API and the My-Makeup frontend app:
 
-## Install dev mode, with my-makeup app too
-1. clone the repo, and the my-makeup repo
-2. run bun install in my-makeup
-3. run yarn install in api-my-makeup
-4. add the .env file in api-my-makeup
-    with the following content:
-```
-HOST=0.0.0.0
-PORT=1337
-APP_KEYS=key1,key2
-API_TOKEN_SALT=salt_key
-ADMIN_JWT_SECRET=secret
-JWT_SECRET=secret
+1. Clone both repositories (api-my-makeup and my-makeup).
+2. Follow the installation steps for the API as described above.
+3. For the frontend (my-makeup):
+   - Run `bun install` in the my-makeup directory.
+   - Create a `.env` file with the following content:
+     ```
+     NEXTAUTH_SECRET="nextauthsecret"
+     NEXT_PUBLIC_API_URL=http://localhost:1337
+     NEXT_PUBLIC_URL=http://localhost:3000/
+     NEXT_PUBLIC_DATABASE_URL=sqlite:///path/to/api-my-makeup/.tmp/data.db
+     NEXTAUTH_URL=http://localhost:3000/
+     ```
+   - Replace the `NEXT_PUBLIC_DATABASE_URL` path with the actual path to your api-my-makeup `.tmp/data.db` file.
+4. Start both servers:
+   - API: `yarn develop` in the api-my-makeup directory
+   - Frontend: `bun dev` in the my-makeup directory
+5. Set up initial permissions in the Strapi admin panel (`localhost:1337/admin`):
+   - Go to Settings > Roles & Permissions
+   - In the Public role, check all boxes under "makeup-artists"
+   - In the Authenticated role, check all boxes for all permissions
 
-DB_CLIENT='sqlite'
-DB_FILENAME=".tmp/data.db"
 
-S3_BUCKET='bucket'
-S3_ACCESS_KEY_ID='ACCESS_KEY_ID'
-S3_ACCESS_SECRET='S3_ACCESS_SECRET'
-S3_ENDPOINT='localhost'
-S3_SSL=false
-S3_PORT=9000
-```
-4. run yarn develop in api-my-makeup
-add the .env file in my-makeup
-    with the following content:
-```
-NEXTAUTH_SECRET="nextauthsecret"
-NEXT_PUBLIC_API_URL=http://localhost:1337
-NEXT_PUBLIC_URL=http://localhost:3000/
-NEXT_PUBLIC_DATABASE_URL=sqlite:///home/andycinquin/ClonedRepo/api-my-makeup/.tmp/data.db
-NEXTAUTH_URL=http://localhost:3000/
-```
-5. change the 'NEXT_PUBLIC_DATABASE_URL' path to the path of the api-my-makeup .tmp/data.db file (you can find it in the api-my-makeup folder)
-6. go to localhost:1337/admin and create a user 
-7. run bun dev in my-makeup
-8. go to localhost:3000/auth/signup and create a user (wath ever you want)
-9. follow the stepper
-10. at the last step, you will get an error, it's "normal"
-11. go to localhost:1337/admin and go in settings
-12. go in roles and permissions
-13. go in public and check all the boxes in "makeup-artists"
-14. then go in authenticated and check all the boxes everywhere
-15. then go back to localhost:3000/auth/signup and follow the stepper
-16. you should be able to create a makeup artist now
+## Contact
+
+For more information about the My-Makeup API or to report issues, please open an issue in this repository or contact the development team at [contact@andy-cinquin.fr]
