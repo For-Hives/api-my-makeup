@@ -1,5 +1,3 @@
-Certainly! I'll create a README for the My-Makeup API project, incorporating the information from the provided paste and keeping the essential elements. Here's the updated README:
-
 # My-Makeup API 💄
 
 ![My-Makeup Logo](https://r2-andycinquin.andy-cinquin.fr/pres_mymakeup_0824c6b79e.webp)
