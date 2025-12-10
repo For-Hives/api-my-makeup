@@ -29,16 +29,16 @@
     "supertest": "7.1.1"
   },
   "dependencies": {
-    "@strapi/plugin-documentation": "4.25.22",
-    "@strapi/plugin-i18n": "4.25.13",
-    "@strapi/plugin-users-permissions": "4.25.22",
-    "@strapi/strapi": "4.25.22",
+    "@strapi/plugin-documentation": "4.25.12",
+    "@strapi/plugin-i18n": "4.25.12",
+    "@strapi/plugin-users-permissions": "4.25.12",
+    "@strapi/strapi": "4.25.12",
     "fuse": "0.12.1",
     "fuse.js": "6.6.2",
     "lodash": "4.17.21",
     "strapi-provider-cloudflare-r2": "0.3.0",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "react-router-dom": "5.3.4",
     "styled-components": "5.3.11"
   },
