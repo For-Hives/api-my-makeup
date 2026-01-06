@@ -26,7 +26,7 @@
     "jest": "30.0.3",
     "lint-staged": "16.1.2",
     "sqlite3": "5.1.7",
-    "supertest": "7.1.1"
+    "supertest": "7.2.2"
   },
   "dependencies": {
     "@strapi/plugin-documentation": "4.25.12",
