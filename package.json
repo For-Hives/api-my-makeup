@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@jest/globals": "30.0.3",
-    "better-sqlite3": "12.1.1",
+    "better-sqlite3": "12.6.2",
     "husky": "9.1.7",
     "jest": "30.0.3",
     "lint-staged": "16.1.2",
