@@ -35,7 +35,7 @@
     "@strapi/strapi": "4.25.12",
     "fuse": "0.12.1",
     "fuse.js": "6.6.2",
-    "lodash": "4.17.21",
+    "lodash": "4.18.1",
     "strapi-provider-cloudflare-r2": "0.3.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
