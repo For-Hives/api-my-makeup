@@ -12,6 +12,9 @@ module.exports = ({ env }) => ({
   },
   upload: {
     config: {
+      // Every upload, the admin's included (the public route also checks
+      // the type: src/middlewares/upload-guard.js)
+      sizeLimit: 10 * 1024 * 1024,
       provider: "strapi-provider-cloudflare-r2",
       providerOptions: {
         accessKeyId: env("CF_ACCESS_KEY_ID"),

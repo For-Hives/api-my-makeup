@@ -30,7 +30,14 @@ module.exports = ({ env }) => {
     "strapi::poweredBy",
     "strapi::logger",
     "strapi::query",
-    "strapi::body",
+    {
+      name: "strapi::body",
+      config: {
+        // Stop reading an upload past 10 MB (413) instead of writing up to
+        // 200 MB to the disk before refusing it
+        formidable: { maxFileSize: 10 * 1024 * 1024 },
+      },
+    },
     "strapi::session",
     "strapi::favicon",
     "strapi::public",
