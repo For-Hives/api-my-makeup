@@ -6,6 +6,8 @@
 
 const _ = require("lodash");
 
+const PROFILE_UID = "api::makeup-artiste.makeup-artiste";
+
 // Fields an artist may change on her profile. Anything else in the PATCH
 // body (pro, score, username, user, timestamps...) is ignored.
 const EDITABLE_FIELDS = [
@@ -194,38 +196,31 @@ module.exports = {
       throw new Error("User not found");
     }
 
-    try {
-      // find if makeup artist already exists for user
-      const existing = await strapi.entityService.findMany(
-        "api::makeup-artiste.makeup-artiste",
-        {
-          filters: {
-            user: {
-              id: {
-                $eq: user.id,
-              },
+    // One transaction: if the profile cannot be deleted, the account stays
+    // (it used to be deleted anyway, leaving an orphan profile), and the
+    // other way round. An account without a profile can still be deleted.
+    await strapi.db.transaction(async () => {
+      const profiles = await strapi.entityService.findMany(PROFILE_UID, {
+        fields: ["id"],
+        filters: {
+          user: {
+            id: {
+              $eq: user.id,
             },
           },
-        }
-      );
+        },
+      });
 
-      if (!existing || existing.length !== 1) {
-        throw new Error("Makeup artist does not exist for this user");
+      for (const profile of profiles) {
+        await strapi.entityService.delete(PROFILE_UID, profile.id);
       }
 
-      // delete the makeup artist linked to user
-      await strapi.entityService.delete(
-        "api::makeup-artiste.makeup-artiste",
-        existing[0].id // id of makeup artist linked to user
-      );
-    } catch (error) {
-      console.error(`Error deleting makeup artist: ${error.message}`);
-    }
-
-    // delete the user
-    await strapi.plugins['users-permissions'].services.user.remove({ id: user.id });
+      await strapi.plugins["users-permissions"].services.user.remove({
+        id: user.id,
+      });
+    });
 
     // return 200
-    return {message: "User deleted"};
+    return { message: "User deleted" };
   },
 };

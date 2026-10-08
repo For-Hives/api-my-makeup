@@ -1,4 +1,4 @@
-// S05, S06: the profile space endpoints (/api/me-makeup).
+// S05, S06, S07: the profile space endpoints (/api/me-makeup).
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const { setupStrapi, stopStrapi } = require("../helpers/strapi");
 const { http, createAccount, findKeys } = require("../helpers/fixtures");
@@ -109,5 +109,90 @@ describe("/api/me-makeup", () => {
       owner.profile.id
     );
     expect(stored.pro).toBe(false);
+  });
+
+  it("S07 - DELETE keeps the account when the profile cannot be deleted", async () => {
+    const victim = await createAccount("profile-fails", {
+      first_name: "Echec",
+    });
+    const entityService = strapi.entityService;
+    const realDelete = entityService.delete;
+    entityService.delete = async (uid, ...rest) => {
+      if (uid === PROFILE_UID) throw new Error("simulated profile failure");
+      return realDelete.call(entityService, uid, ...rest);
+    };
+    try {
+      await as(victim, "delete").expect(400);
+    } finally {
+      entityService.delete = realDelete;
+    }
+
+    expect(
+      await strapi.query(USER_UID).findOne({ where: { id: victim.user.id } })
+    ).not.toBeNull();
+    expect(
+      await strapi.query(PROFILE_UID).findOne({
+        where: { id: victim.profile.id },
+      })
+    ).not.toBeNull();
+  });
+
+  it("S07 - DELETE keeps the profile when the account cannot be deleted", async () => {
+    const victim = await createAccount("account-fails", {
+      first_name: "Echec",
+    });
+    const userService = strapi.plugins["users-permissions"].services.user;
+    const realRemove = userService.remove;
+    userService.remove = async () => {
+      throw new Error("simulated account failure");
+    };
+    try {
+      await as(victim, "delete").expect(400);
+    } finally {
+      userService.remove = realRemove;
+    }
+
+    expect(
+      await strapi.query(PROFILE_UID).findOne({
+        where: { id: victim.profile.id },
+      })
+    ).not.toBeNull();
+    expect(
+      await strapi.query(USER_UID).findOne({ where: { id: victim.user.id } })
+    ).not.toBeNull();
+  });
+
+  it("S07 - DELETE removes the profile and the account", async () => {
+    const leaving = await createAccount("leaving", { first_name: "Depart" });
+
+    const response = await as(leaving, "delete").expect(200);
+    expect(response.body).toEqual({ message: "User deleted" });
+
+    expect(
+      await strapi.query(PROFILE_UID).findOne({
+        where: { id: leaving.profile.id },
+      })
+    ).toBeNull();
+    expect(
+      await strapi.query(USER_UID).findOne({ where: { id: leaving.user.id } })
+    ).toBeNull();
+  });
+
+  it("S07 - DELETE also removes an account that never created its profile", async () => {
+    const empty = await createAccount("no-profile");
+
+    await as(empty, "delete").expect(200);
+
+    expect(
+      await strapi.query(USER_UID).findOne({ where: { id: empty.user.id } })
+    ).toBeNull();
+  });
+
+  it("S07 - DELETE leaves the other accounts alone", async () => {
+    expect(
+      await strapi.query(PROFILE_UID).findOne({
+        where: { id: other.profile.id },
+      })
+    ).not.toBeNull();
   });
 });
