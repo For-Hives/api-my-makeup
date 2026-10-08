@@ -1,4 +1,5 @@
-// S05, S06, S07: the profile space endpoints (/api/me-makeup).
+// S05, S06, S07: the profile space endpoints (/api/me-makeup), and the
+// 2-character names of UI-01.
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const { setupStrapi, stopStrapi } = require("../helpers/strapi");
 const { http, createAccount, findKeys } = require("../helpers/fixtures");
@@ -100,6 +101,68 @@ describe("/api/me-makeup", () => {
     expect(stored.username).toBe("owner");
     expect(stored.user.id).toBe(owner.user.id);
     expect(stored.createdAt).not.toMatch(/^2001/);
+  });
+
+  it("UI-01 - PATCH stores a 2-character first and last name", async () => {
+    const shortName = await createAccount("short-name", {
+      first_name: "Prenom",
+      last_name: "Nom",
+    });
+
+    const response = await as(shortName, "patch", {
+      first_name: "Al",
+      last_name: "Bo",
+    }).expect(200);
+
+    expect(response.body.first_name).toBe("Al");
+    expect(response.body.last_name).toBe("Bo");
+    const stored = await strapi.entityService.findOne(
+      PROFILE_UID,
+      shortName.profile.id
+    );
+    expect(stored.first_name).toBe("Al");
+    expect(stored.last_name).toBe("Bo");
+  });
+
+  it.each(["first_name", "last_name"])(
+    "UI-01 - PATCH refuses a 1-character %s and changes nothing",
+    async (field) => {
+      const oneLetter = await createAccount(`one-letter-${field}`, {
+        first_name: "Prenom",
+        last_name: "Nom",
+      });
+
+      const response = await as(oneLetter, "patch", {
+        [field]: "A",
+        city: "Chambery",
+      }).expect(400);
+
+      // the front turns this rule into « … au moins 2 caractères »
+      expect(response.body.error.details.moreDetails).toBe(
+        `${field} must be at least 2 characters`
+      );
+      const stored = await strapi.entityService.findOne(
+        PROFILE_UID,
+        oneLetter.profile.id
+      );
+      expect(stored.first_name).toBe("Prenom");
+      expect(stored.last_name).toBe("Nom");
+      expect(stored.city).toBeNull();
+    }
+  );
+
+  it("UI-01 - a stored name below the rule does not block saving other fields", async () => {
+    const legacy = await createAccount("legacy-name", { first_name: "Prenom" });
+    // written without validation, like a profile saved before the rule
+    await strapi.query(PROFILE_UID).update({
+      where: { id: legacy.profile.id },
+      data: { first_name: "A", last_name: "" },
+    });
+
+    const response = await as(legacy, "patch", { city: "Annecy" }).expect(200);
+
+    expect(response.body.city).toBe("Annecy");
+    expect(response.body.first_name).toBe("A");
   });
 
   it("S05 - PATCH with only refused fields changes nothing", async () => {
