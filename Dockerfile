@@ -62,10 +62,12 @@ EXPOSE 1337
 # This slim image has neither curl nor wget, so Coolify's own HTTP
 # healthcheck (curl || wget) cannot work here: the check below only needs
 # Node (scripts/healthcheck.js, GET /_health -> 204). Coolify detects it,
-# copies its timings and, before removing the old container, waits for
-# "healthy": about 60 s, then 4 polls 15 s apart (~105 s to boot).
-# An unhealthy new container is removed and the old one kept running.
-HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=4 \
+# copies its timings and, before removing the old container, sleeps for
+# the whole start period (30 s), then polls up to 8 times 10 s apart for
+# "healthy" (~100 s to boot). An unhealthy new container is removed and
+# the old one kept running. Traefik only routes a healthy container, so
+# the 10 s interval also bounds the gap after a restart.
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=8 \
   CMD ["node", "/app/scripts/healthcheck.js"]
 
 CMD ["npm", "start"]
