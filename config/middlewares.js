@@ -38,7 +38,6 @@ module.exports = ({ env }) => {
         ]),
       },
     },
-    "strapi::poweredBy",
     "strapi::logger",
     "strapi::query",
     {

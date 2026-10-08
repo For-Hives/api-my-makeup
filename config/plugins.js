@@ -1,4 +1,13 @@
 module.exports = ({ env }) => ({
+  // /documentation lists every route and field of the API: development
+  // only (tests and production run without it). DOCUMENTATION_ENABLED=true
+  // turns it on anyway.
+  documentation: {
+    enabled: env.bool(
+      "DOCUMENTATION_ENABLED",
+      env("NODE_ENV", "development") === "development"
+    ),
+  },
   "users-permissions": {
     config: {
       jwtSecret: env("JWT_SECRET"),
