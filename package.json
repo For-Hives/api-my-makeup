@@ -33,7 +33,6 @@
     "@strapi/plugin-i18n": "4.26.2",
     "@strapi/plugin-users-permissions": "4.26.2",
     "@strapi/strapi": "4.26.2",
-    "fuse": "0.12.1",
     "fuse.js": "6.6.2",
     "lodash": "4.17.21",
     "strapi-provider-cloudflare-r2": "0.3.0",
