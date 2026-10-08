@@ -4,7 +4,44 @@
  * init-makeup service
  */
 
+const _ = require("lodash");
+
+// Fields an artist may change on her profile. Anything else in the PATCH
+// body (pro, score, username, user, timestamps...) is ignored.
+const EDITABLE_FIELDS = [
+  "first_name",
+  "last_name",
+  "company_artist_name",
+  "speciality",
+  "city",
+  "action_radius",
+  "available",
+  "description",
+  "skills",
+  "experiences",
+  "courses",
+  "language",
+  "network",
+  "service_offers",
+  "main_picture",
+  "image_gallery",
+];
+
+// The account as returned with the profile: never its password hash or
+// tokens (entityService does not sanitize, every user field would come out).
+const ACCOUNT_FIELDS = ["id", "username", "email"];
+
+/**
+ * Keeps only the fields an artist may change on her profile.
+ * @param {object} json - PATCH body
+ * @returns {object}
+ */
+const pickEditableFields = (json) =>
+  _.isPlainObject(json) ? _.pick(json, EDITABLE_FIELDS) : {};
+
 module.exports = {
+  EDITABLE_FIELDS,
+  pickEditableFields,
   createMakeupArtist: async (user) => {
     if (!user) {
       throw new Error("User not found");
@@ -73,7 +110,7 @@ module.exports = {
       "api::makeup-artiste.makeup-artiste",
       existing[0].id, // id of makeup artist linked to user
       {
-        data: json,
+        data: pickEditableFields(json),
       }
     );
 
@@ -91,7 +128,7 @@ module.exports = {
           service_offers: true,
           network: true,
           language: true,
-          user: true,
+          user: { fields: ACCOUNT_FIELDS },
           image_gallery: true,
         },
       }
@@ -130,10 +167,7 @@ module.exports = {
             populate: "*",
           },
           user: {
-            populate: {
-              role: true,
-              makeup_artiste: true,
-            },
+            fields: ACCOUNT_FIELDS,
           },
           image_gallery: true,
         },

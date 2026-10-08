@@ -151,8 +151,13 @@ describe("admin users never reach the custom endpoints", () => {
 
     expect(response.body.main_picture.url).toBe(file.url);
     expect(response.body.image_gallery[0].url).toBe(file.url);
+    // id, username and email only: no role, no hash, no tokens (S06)
+    expect(Object.keys(response.body.user).sort()).toEqual([
+      "email",
+      "id",
+      "username",
+    ]);
     expect(response.body.user.username).toBe("exposure");
-    expect(response.body.user.role.type).toBe("authenticated");
     expectNoAdminData(response.body);
   });
 
