@@ -22,9 +22,11 @@ RUN yarn build \
   && mkdir -p .tmp .cache public/uploads
 
 # --- Runtime image, run as the unprivileged node user ---
+# No RUN in this stage: Coolify injects its build variables as ARG right
+# after each FROM, and a RUN would record their values in the history of
+# the final image (docker history). Directories are created in the build
+# stage, ownership is set by COPY --chown.
 FROM docker.io/library/node:20-bookworm-slim AS run
-
-WORKDIR /app
 
 # Kept as-is on purpose: baking DATABASE_* into the image is a known leak.
 # Their removal (runtime-only variables, Coolify build args off) is
@@ -44,9 +46,11 @@ ENV DATABASE_PASSWORD $DATABASE_PASSWORD
 ENV NODE_ENV production
 ENV DB_CLIENT='postgres'
 
-RUN chown node:node /app
+# /app does not exist yet in this stage: COPY creates it, owned by node
+# like everything inside it (.tmp, .cache and public/uploads included).
+COPY --from=build --chown=node:node /app /app
 
-COPY --from=build --chown=node:node /app ./
+WORKDIR /app
 
 USER node
 
