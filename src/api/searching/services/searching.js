@@ -1,6 +1,7 @@
 "use strict";
 const _ = require("lodash");
 const Fuse = require("fuse.js");
+const { avecVillePublique } = require("../../../utils/public-city");
 
 const PROFILE_UID = "api::makeup-artiste.makeup-artiste";
 
@@ -42,7 +43,10 @@ const MAX_PUBLIC_RESULTS = 50;
 const MAX_TERM_LENGTH = 100;
 
 /**
- * Keeps the public fields of a profile found by the search.
+ * Keeps the public fields of a profile found by the search, with the public
+ * city (« Annecy (74) », never a street: UI-11, src/utils/public-city.js).
+ * Called once the profiles are matched and sorted, so the search still
+ * matches on the city as typed.
  * @param {object} profile
  * @returns {object}
  */
@@ -53,7 +57,7 @@ const toPublicResult = (profile) => {
       ? _.pick(profile.network, PUBLIC_NETWORK_FIELDS)
       : null;
   }
-  return result;
+  return avecVillePublique(result);
 };
 
 const searchTerm = (value) =>
