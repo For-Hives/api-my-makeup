@@ -817,7 +817,7 @@ export interface ApiArticleArticle extends Schema.CollectionType {
     seo_description: Attribute.String &
       Attribute.Required &
       Attribute.SetMinMaxLength<{
-        maxLength: 120;
+        maxLength: 155;
       }>;
     slug: Attribute.String & Attribute.Required;
     excerpt: Attribute.Text;
