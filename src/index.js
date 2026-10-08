@@ -1,6 +1,7 @@
 "use strict";
 
 const { syncRolePermissions } = require("./utils/permissions");
+const { subscribeRetiredProviders } = require("./utils/retired-providers");
 
 module.exports = {
   /**
@@ -24,6 +25,9 @@ module.exports = {
    * run jobs, or perform some special logic.
    */
   async bootstrap({ strapi }) {
+    // Former Facebook accounts sign in with a password once they set one
+    subscribeRetiredProviders(strapi);
+
     // Public and Authenticated permissions come from config/permissions.js
     if (process.env.PERMISSIONS_SYNC === "false") {
       strapi.log.warn(
