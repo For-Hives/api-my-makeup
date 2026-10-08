@@ -13,6 +13,7 @@ const fs = require("fs/promises");
 const {
   checkUploadFile,
   checkUploadRequest,
+  withTypeExtension,
 } = require("../utils/upload-rules");
 
 const readHead = async (filePath) => {
@@ -58,8 +59,10 @@ module.exports = () => async (ctx, next) => {
       return refuse(ctx, result);
     }
 
-    // store the type read from the content, not the one the client declared
+    // store the type read from the content, not the one the client declared,
+    // and the matching extension
     file.type = result.type;
+    file.name = withTypeExtension(file.name, result.type);
   }
 
   return next();

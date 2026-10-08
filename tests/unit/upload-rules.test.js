@@ -4,6 +4,7 @@ const {
   checkUploadFile,
   checkUploadRequest,
   sniffImageType,
+  withTypeExtension,
 } = require("../../src/utils/upload-rules");
 
 const bytes = (...values) => Uint8Array.from(values);
@@ -89,5 +90,19 @@ describe("checkUploadRequest", () => {
       status: 400,
       message: "Unexpected upload fields: ref, refId, field, path",
     });
+  });
+});
+
+describe("withTypeExtension", () => {
+  it.each([
+    ["x.html", "image/jpeg", "x.jpg"],
+    ["photo.JPEG", "image/jpeg", "photo.jpg"],
+    ["portrait.png", "image/webp", "portrait.webp"],
+    ["no-extension", "image/png", "no-extension.png"],
+    ["archive.tar.gz", "image/png", "archive.tar.png"],
+    [undefined, "image/jpeg", "image.jpg"],
+    [".htaccess", "image/png", "image.png"],
+  ])("%s as %s -> %s", (name, type, expected) => {
+    expect(withTypeExtension(name, type)).toBe(expected);
   });
 });

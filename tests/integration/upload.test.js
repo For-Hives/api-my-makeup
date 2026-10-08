@@ -97,6 +97,16 @@ describe("POST /api/upload", () => {
     uploaded.push(...response.body);
 
     expect(response.body[0].mime).toBe("image/png");
+    expect(response.body[0].ext).toBe(".png");
+  });
+
+  it("S13 - stores a picture named .html with the extension of its content", async () => {
+    const response = await upload(png, "page.html", "image/png").expect(200);
+    uploaded.push(...response.body);
+
+    expect(response.body[0].mime).toBe("image/png");
+    expect(response.body[0].ext).toBe(".png");
+    expect(response.body[0].url).not.toMatch(/\.html$/);
   });
 
   it.each([

@@ -12,6 +12,12 @@ const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
+const EXTENSIONS = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+};
+
 // The only body field the upload route needs (file name, alt, caption).
 // ref, refId, field and path would attach the file to any entry or put it
 // anywhere in the bucket.
@@ -67,6 +73,19 @@ const checkUploadFile = ({ type, size, head }) => {
 };
 
 /**
+ * Gives the file name the extension of its detected type, so that a picture
+ * named x.html is stored as x.jpg (Strapi takes the extension from the name).
+ *
+ * @param {string|undefined} name - File name sent by the client
+ * @param {string} type - Type detected from the content
+ * @returns {string}
+ */
+const withTypeExtension = (name, type) => {
+  const base = String(name || "image").replace(/\.[^./\\]*$/, "") || "image";
+  return `${base}${EXTENSIONS[type]}`;
+};
+
+/**
  * Checks the query and the body fields of an upload request.
  *
  * @param {{ query?: object, body?: object }} request
@@ -100,4 +119,5 @@ module.exports = {
   checkUploadFile,
   checkUploadRequest,
   sniffImageType,
+  withTypeExtension,
 };
