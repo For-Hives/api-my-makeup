@@ -23,9 +23,12 @@ RUN yarn build \
 
 # --- Runtime image, run as the unprivileged node user ---
 # No RUN in this stage: Coolify injects its build variables as ARG right
-# after each FROM, and a RUN would record their values in the history of
-# the final image (docker history). Directories are created in the build
-# stage, ownership is set by COPY --chown.
+# after each FROM, and a RUN placed after them records their values in the
+# history of the final image (docker history). BuildKit also records the
+# injected ARG lines themselves with their values (ARG KEY=value), so a
+# clean history needs the Coolify side of URG-07 (build args off).
+# Directories are created in the build stage, ownership is set by
+# COPY --chown.
 FROM docker.io/library/node:20-bookworm-slim AS run
 
 # Kept as-is on purpose: baking DATABASE_* into the image is a known leak.
