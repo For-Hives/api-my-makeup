@@ -11,7 +11,7 @@ module.exports = {
 
       const data = await strapi
         .service("api::searching.searching")
-        .searchingMakeup(params);
+        .searchPublicMakeup(params);
 
       ctx.body = data;
     } catch (err) {

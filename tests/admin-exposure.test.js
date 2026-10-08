@@ -136,7 +136,9 @@ describe("admin users never reach the custom endpoints", () => {
     expect(response.body).toHaveLength(1);
     expect(response.body[0].main_picture.url).toBe(file.url);
     expect(response.body[0].image_gallery[0].url).toBe(file.url);
-    expect(response.body[0].user).toEqual({ username: "exposure" });
+    // no account in public results, the profile's own username is enough
+    expect(response.body[0].user).toBeUndefined();
+    expect(response.body[0].username).toBe("exposure");
     expect(findKeys(response.body, ["password", "resetPasswordToken"])).toEqual(
       []
     );
