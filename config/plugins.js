@@ -2,6 +2,11 @@ module.exports = ({ env }) => ({
   "users-permissions": {
     config: {
       jwtSecret: env("JWT_SECRET"),
+      // The users-permissions default, written down: the front's session
+      // ends with this token (AUTH-02).
+      jwt: {
+        expiresIn: "30d",
+      },
       // Registration only takes username, email and password: any other user
       // field (makeup_artiste above all) would let a new account claim an
       // existing profile.

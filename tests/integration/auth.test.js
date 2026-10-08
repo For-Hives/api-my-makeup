@@ -1,5 +1,6 @@
 // S11: login errors are readable, and the login brake is per client
 // address behind Traefik (proxy: true, last X-Forwarded-For entry only).
+// The JWT lifetime is explicit.
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const { setupStrapi, stopStrapi } = require("../helpers/strapi");
 const { http, createAccount } = require("../helpers/fixtures");
@@ -18,6 +19,22 @@ describe("POST /api/auth/local", () => {
 
   afterAll(async () => {
     await stopStrapi();
+  });
+
+  it("issues a JWT valid for 30 days", async () => {
+    const response = await login(
+      "203.0.113.60",
+      "marie@example.test",
+      "Fictional-1234"
+    ).expect(200);
+    const payload = JSON.parse(
+      Buffer.from(response.body.jwt.split(".")[1], "base64url").toString()
+    );
+
+    expect(payload.exp - payload.iat).toBe(30 * 24 * 3600);
+    expect(strapi.config.get("plugin.users-permissions.jwt.expiresIn")).toBe(
+      "30d"
+    );
   });
 
   it("S11 - a wrong password answers 400 with a readable error", async () => {
