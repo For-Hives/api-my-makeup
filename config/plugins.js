@@ -1,4 +1,39 @@
+// Mailgun (A7, forgotten password) once MAILGUN_API_KEY and MAILGUN_DOMAIN
+// are both set; until then Strapi keeps its default provider (sendmail).
+// EU region unless MAILGUN_REGION=us.
+const mailgunEmail = (env) => {
+  const key = env("MAILGUN_API_KEY");
+  const domain = env("MAILGUN_DOMAIN");
+
+  if (!key || !domain) {
+    return {};
+  }
+
+  const from = env("EMAIL_FROM", `My Makeup <no-reply@${domain}>`);
+
+  return {
+    email: {
+      config: {
+        provider: "mailgun",
+        providerOptions: {
+          key,
+          domain,
+          url:
+            env("MAILGUN_REGION", "eu") === "us"
+              ? "https://api.mailgun.net"
+              : "https://api.eu.mailgun.net",
+        },
+        settings: {
+          defaultFrom: from,
+          defaultReplyTo: env("EMAIL_REPLY_TO", from),
+        },
+      },
+    },
+  };
+};
+
 module.exports = ({ env }) => ({
+  ...mailgunEmail(env),
   // /documentation lists every route and field of the API: development
   // only (tests and production run without it). DOCUMENTATION_ENABLED=true
   // turns it on anyway.

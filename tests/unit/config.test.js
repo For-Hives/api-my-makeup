@@ -63,3 +63,66 @@ describe("config/middlewares.js, X-Powered-By", () => {
     expect(names).not.toContain("strapi::poweredBy");
   });
 });
+
+describe("config/plugins.js, email", () => {
+  const MAILGUN = {
+    MAILGUN_API_KEY: "fictional-key",
+    MAILGUN_DOMAIN: "mg.example.test",
+  };
+
+  it.each([
+    ["no variable", {}],
+    ["the key only", { MAILGUN_API_KEY: "fictional-key" }],
+    ["the domain only", { MAILGUN_DOMAIN: "mg.example.test" }],
+  ])("keeps the default provider with %s", (_label, vars) => {
+    delete process.env.MAILGUN_API_KEY;
+    delete process.env.MAILGUN_DOMAIN;
+    Object.assign(process.env, vars);
+    expect(plugins({ env }).email).toBeUndefined();
+  });
+
+  it("uses Mailgun in the EU region when both are set", () => {
+    Object.assign(process.env, MAILGUN);
+    delete process.env.MAILGUN_REGION;
+    delete process.env.EMAIL_FROM;
+    delete process.env.EMAIL_REPLY_TO;
+
+    expect(plugins({ env }).email.config).toEqual({
+      provider: "mailgun",
+      providerOptions: {
+        key: "fictional-key",
+        domain: "mg.example.test",
+        url: "https://api.eu.mailgun.net",
+      },
+      settings: {
+        defaultFrom: "My Makeup <no-reply@mg.example.test>",
+        defaultReplyTo: "My Makeup <no-reply@mg.example.test>",
+      },
+    });
+  });
+
+  it("MAILGUN_REGION=us, EMAIL_FROM and EMAIL_REPLY_TO", () => {
+    Object.assign(process.env, MAILGUN, {
+      MAILGUN_REGION: "us",
+      EMAIL_FROM: "Equipe <bonjour@example.test>",
+      EMAIL_REPLY_TO: "contact@example.test",
+    });
+
+    const { providerOptions, settings } = plugins({ env }).email.config;
+    expect(providerOptions.url).toBe("https://api.mailgun.net");
+    expect(settings).toEqual({
+      defaultFrom: "Equipe <bonjour@example.test>",
+      defaultReplyTo: "contact@example.test",
+    });
+  });
+
+  it("builds a working @strapi/provider-email-mailgun client, without sending", () => {
+    Object.assign(process.env, MAILGUN);
+    const { providerOptions, settings } = plugins({ env }).email.config;
+    const provider = require("@strapi/provider-email-mailgun").init(
+      providerOptions,
+      settings
+    );
+    expect(typeof provider.send).toBe("function");
+  });
+});
