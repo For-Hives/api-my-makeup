@@ -108,6 +108,24 @@ yarn develop
 | `S3_ACCESS_KEY_ID`  | Minio access key id                           |
 | `S3_ACCESS_SECRET`  | Minio access secret                           |
 
+## 🧪 Tests
+
+The jest suite boots Strapi once per test file, each file on its own
+database, so files run in parallel.
+
+- SQLite (default): `yarn test`
+- Postgres, like production and the CI:
+
+  ```
+  docker run -d --name api-test-pg -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres:16-alpine
+  TEST_DB_CLIENT=postgres TEST_DATABASE_HOST=127.0.0.1 TEST_DATABASE_PASSWORD=postgres yarn test
+  ```
+
+Only `TEST_*` variables choose the test database, never `DATABASE_*`, and
+`config/env/test/database.js` refuses any host other than `localhost`,
+`127.0.0.1`, `::1` or `postgres`. Each file creates then drops a
+`mm_<file>_<pid>_test` database.
+
 ## Full Stack Development Setup
 
 To set up both the API and the My-Makeup frontend app:

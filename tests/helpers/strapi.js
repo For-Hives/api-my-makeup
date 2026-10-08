@@ -1,6 +1,8 @@
 const Strapi = require("@strapi/strapi");
 const fs = require("fs");
+const path = require("path");
 const _ = require("lodash");
+const { expect } = require("@jest/globals");
 
 let instance;
 
@@ -8,13 +10,60 @@ const sleep = (milliseconds) => {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 };
 
+// One database per test file, named after it, so that jest can run the
+// files in parallel (SQLite file, or Postgres database with TEST_DB_CLIENT).
+const testDatabaseName = () => {
+  const file = path.basename(expect.getState().testPath || "app", ".test.js");
+  const slug = file.toLowerCase().replace(/[^a-z0-9]+/g, "_").slice(0, 40);
+  return `mm_${slug}_${process.pid}_test`;
+};
+
+// Postgres: the database is created before Strapi connects and dropped
+// after. config/env/test/database.js has already refused any non local host
+// or any name not ending with _test.
+const withPostgresAdmin = async (connection, run) => {
+  const { Client } = require("pg");
+  const client = new Client({
+    host: connection.host,
+    port: connection.port,
+    user: connection.user,
+    password: connection.password,
+    database: "postgres",
+  });
+  await client.connect();
+  try {
+    return await run(client);
+  } finally {
+    await client.end();
+  }
+};
+
+const dropDatabase = (client, name) =>
+  client.query(`DROP DATABASE IF EXISTS "${name}" WITH (FORCE)`);
+
 /**
  * Setups strapi for futher testing
  */
 async function setupStrapi() {
   if (!instance) {
-    await Strapi().load();
-    instance = strapi;
+    process.env.STRAPI_TELEMETRY_DISABLED = "true";
+    const name = testDatabaseName();
+    process.env.TEST_DATABASE_NAME = name;
+    if (!process.env.DATABASE_FILENAME) {
+      process.env.DATABASE_FILENAME = `.tmp/${name}.db`;
+    }
+
+    const app = Strapi();
+    const { client, connection } = app.config.get("database.connection");
+    if (client === "postgres") {
+      await withPostgresAdmin(connection, async (admin) => {
+        await dropDatabase(admin, connection.database);
+        await admin.query(`CREATE DATABASE "${connection.database}"`);
+      });
+    }
+
+    await app.load();
+    instance = app;
 
     await instance.server.mount();
   }
@@ -26,14 +75,17 @@ async function setupStrapi() {
  */
 async function stopStrapi() {
   if (instance) {
-    instance.destroy();
+    const { client, connection } = instance.config.get("database.connection");
 
-    const tmpDbFile = strapi.config.get(
-      "database.connection.connection.filename"
-    );
+    await instance.destroy();
+    instance = undefined;
 
-    if (fs.existsSync(tmpDbFile)) {
-      fs.unlinkSync(tmpDbFile);
+    if (client === "postgres") {
+      await withPostgresAdmin(connection, (admin) =>
+        dropDatabase(admin, connection.database)
+      );
+    } else if (connection.filename && fs.existsSync(connection.filename)) {
+      fs.unlinkSync(connection.filename);
     }
   }
   return instance;
