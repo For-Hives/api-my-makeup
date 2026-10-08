@@ -8,13 +8,9 @@ This is the backend API for My-Makeup, a platform connecting professional makeup
 
 ## 📦 Requirements
 
-- [Node.js](https://nodejs.org/en/download/)
-- [Yarn](https://yarnpkg.com/getting-started/install)
-- [Docker](https://docs.docker.com/get-docker/)
-- [Minio](https://docs.min.io/docs/minio-docker-quickstart-guide.html)
-- [Caprover](https://caprover.com/docs/get-started.html)
-- [Docker Hub](https://hub.docker.com/)
-- [Postgres Docker](https://hub.docker.com/_/postgres)
+- [Node.js](https://nodejs.org/en/download/) 20 (`.nvmrc`; Strapi 4 refuses Node 22)
+- [Yarn](https://yarnpkg.com/getting-started/install) 1, with the committed `yarn.lock`
+- [Docker](https://docs.docker.com/get-docker/) or Podman, for the image and a test Postgres
 
 ## 🧰 Development
 
@@ -55,13 +51,11 @@ yarn develop
    DB_CLIENT='sqlite'
    DB_FILENAME=".tmp/data.db"
 
-   S3_BUCKET='bucket'
-   S3_ACCESS_KEY_ID='ACCESS_KEY_ID'
-   S3_ACCESS_SECRET='S3_ACCESS_SECRET'
-   S3_ENDPOINT='localhost'
-   S3_SSL=false
-   S3_PORT=9000
+   CORS_ORIGINS=http://localhost:3000
    ```
+
+   `.env.example` lists the other variables (Cloudflare R2, Postgres,
+   Mailgun).
 
 5. Run the development server:
    ```
@@ -72,41 +66,40 @@ yarn develop
 
 ## ⚙️ Deployment
 
-### CI / CD Environment Variables
+Production runs on Coolify, which builds the `Dockerfile` (multi-stage,
+`node:20-bookworm-slim`, `USER node`) from `main`. The image healthcheck
+is `node /app/scripts/healthcheck.js` (`GET /_health` → 204).
 
-| Variable          | Description         |
-| ----------------- | ------------------- |
-| `APP_URL`         | Caprover app url    |
-| `APP_NAME`        | Caprover app name   |
-| `APP_TOKEN`       | Caprover app token  |
-| `DOCKER_USERNAME` | Docker hub username |
-| `DOCKER_PASSWORD` | Docker hub password |
-| `APP_IMAGE`       | Docker image name   |
-| `S3_ENDPOINT`     | Minio endpoint      |
-| `S3_PORT`         | Minio port          |
-| `S3_SSL`          | Minio ssl enable    |
+The CI (`.github/workflows/build-only.yml`, job `just-build`) installs the
+locked dependencies on Node 20, builds the admin panel, runs the jest
+suite on a Postgres service and builds the image, on every pull request
+and push to `main`. It deploys nothing.
 
 ### Docker Environment Variables
 
-| Variable            | Description                                   |
-| ------------------- | --------------------------------------------- |
-| `HOST`              | Strapi host listener                          |
-| `PORT`              | Strapi port listener                          |
-| `APP_KEY`           | Set the application key                       |
-| `API_TOKEN_SALT`    | Set the API token salt                        |
-| `ADMIN_JWT_SECRET`  | Set the admin JWT secret                      |
-| `DB_CLIENT`         | Set the database client ( postgres / sqlite ) |
-| `DATABASE_HOST`     | Set the database host                         |
-| `DATABASE_PORT`     | Set the database port                         |
-| `DATABASE_NAME`     | Set the database name                         |
-| `DATABASE_USERNAME` | Set the database username                     |
-| `DATABASE_PASSWORD` | Set the database password                     |
-| `S3_ENDPOINT`       | Minio endpoint                                |
-| `S3_PORT`           | Minio port                                    |
-| `S3_SSL`            | Minio ssl enable                              |
-| `S3_BUCKET`         | Minio bucket name                             |
-| `S3_ACCESS_KEY_ID`  | Minio access key id                           |
-| `S3_ACCESS_SECRET`  | Minio access secret                           |
+| Variable                | Description                                                      |
+| ----------------------- | ---------------------------------------------------------------- |
+| `HOST`                  | Strapi host listener                                             |
+| `PORT`                  | Strapi port listener                                             |
+| `APP_KEYS`              | Application keys                                                 |
+| `API_TOKEN_SALT`        | API token salt                                                   |
+| `ADMIN_JWT_SECRET`      | Admin JWT secret                                                 |
+| `JWT_SECRET`            | users-permissions JWT secret                                     |
+| `DB_CLIENT`             | Database client (`postgres` in the image)                        |
+| `DATABASE_HOST`         | Database host                                                    |
+| `DATABASE_PORT`         | Database port                                                    |
+| `DATABASE_NAME`         | Database name                                                    |
+| `DATABASE_USERNAME`     | Database username                                                |
+| `DATABASE_PASSWORD`     | Database password                                                |
+| `CF_*`                  | Cloudflare R2 upload provider (`.env.example`)                   |
+| `CORS_ORIGINS`          | Browser origins, comma separated (default: the two my-makeup.fr) |
+| `MAILGUN_API_KEY`       | With `MAILGUN_DOMAIN`, sends emails through Mailgun              |
+| `MAILGUN_DOMAIN`        | Mailgun sending domain                                           |
+| `MAILGUN_REGION`        | `eu` (default) or `us`                                           |
+| `EMAIL_FROM`            | Default sender (default: `no-reply@<MAILGUN_DOMAIN>`)            |
+| `EMAIL_REPLY_TO`        | Default reply-to (default: the sender)                           |
+| `DOCUMENTATION_ENABLED` | `true` serves `/documentation` outside development               |
+| `PERMISSIONS_SYNC`      | `false` skips applying `config/permissions.js` at start          |
 
 ## 🧪 Tests
 
