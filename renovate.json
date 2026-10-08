@@ -1,17 +1,31 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base"],
+  "extends": ["config:recommended"],
+  "timezone": "Europe/Paris",
+  "automerge": false,
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "automerge": false,
+    "labels": ["security"]
+  },
   "packageRules": [
     {
-      "matchUpdateTypes": ["minor", "patch"],
-      "matchCurrentVersion": "!/^0/",
-      "automerge": false,
-      "automergeType": "pr",
-      "automergeStrategy": "squash"
+      "description": "Strapi 4 stays on Node 20 and on its 4.26 line: no minor or major update outside a security fix (those go through vulnerabilityAlerts, which overrides this rule)",
+      "matchUpdateTypes": ["major", "minor"],
+      "enabled": false
     },
     {
+      "description": "The remaining patch updates, in one weekly pull request, never merged automatically",
+      "matchUpdateTypes": ["patch"],
+      "groupName": "patch updates",
+      "groupSlug": "patch-updates",
+      "schedule": ["before 6am on monday"],
+      "automerge": false
+    },
+    {
+      "description": "Pinned for the Strapi 4 admin panel",
       "matchPackageNames": ["react-router-dom", "styled-components"],
-      "allowedVersions": "*",
       "enabled": false
     }
   ]
