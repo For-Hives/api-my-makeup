@@ -1,8 +1,10 @@
 name: Build and Deploy
 
+# Legacy CapRover deployment: production now runs on Coolify. Manual only,
+# so that merging into main neither pushes an image to Docker Hub nor
+# deploys to CapRover. This file and captain-definition go in URG-11.
 on:
-  push:
-    branches: ["main"]
+  workflow_dispatch:
 
 env:
   S3_ENDPOINT: "minio.beta.andy-cinquin.fr"

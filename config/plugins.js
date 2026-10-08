@@ -2,6 +2,12 @@ module.exports = ({ env }) => ({
   "users-permissions": {
     config: {
       jwtSecret: env("JWT_SECRET"),
+      // Registration only takes username, email and password: any other user
+      // field (makeup_artiste above all) would let a new account claim an
+      // existing profile.
+      register: {
+        allowedFields: [],
+      },
     },
   },
   upload: {
