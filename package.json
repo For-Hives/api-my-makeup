@@ -35,7 +35,7 @@
     "@strapi/provider-email-mailgun": "4.26.2",
     "@strapi/strapi": "4.26.2",
     "fuse.js": "6.6.2",
-    "lodash": "4.17.21",
+    "lodash": "4.18.1",
     "pg": "8.23.1",
     "strapi-provider-cloudflare-r2": "0.3.0",
     "react": "18.3.1",
