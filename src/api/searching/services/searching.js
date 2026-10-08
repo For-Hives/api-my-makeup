@@ -66,9 +66,10 @@ module.exports = {
         "api::makeup-artiste.makeup-artiste",
         {
           populate: {
-            main_picture: {
-              populate: "*",
-            },
+            // Media scalars only: populating the file relations ("*") also
+            // returned createdBy/updatedBy, i.e. the admin users (email,
+            // bcrypt hash, resetPasswordToken) behind admin uploads.
+            main_picture: true,
             skills: {
               populate: "*",
             },
@@ -90,9 +91,7 @@ module.exports = {
             user: {
               select: ["username"],
             },
-            image_gallery: {
-              populate: "*",
-            },
+            image_gallery: true,
           },
           filters: {
             available: {
