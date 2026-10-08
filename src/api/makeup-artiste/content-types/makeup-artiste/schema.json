@@ -15,13 +15,13 @@
     "last_name": {
       "type": "string",
       "required": false,
-      "minLength": 3,
+      "minLength": 2,
       "maxLength": 70
     },
     "first_name": {
       "type": "string",
       "required": false,
-      "minLength": 3,
+      "minLength": 2,
       "maxLength": 70
     },
     "speciality": {

@@ -853,12 +853,12 @@ export interface ApiMakeupArtisteMakeupArtiste extends Schema.CollectionType {
   attributes: {
     last_name: Attribute.String &
       Attribute.SetMinMaxLength<{
-        minLength: 3;
+        minLength: 2;
         maxLength: 70;
       }>;
     first_name: Attribute.String &
       Attribute.SetMinMaxLength<{
-        minLength: 3;
+        minLength: 2;
         maxLength: 70;
       }>;
     speciality: Attribute.String &
