@@ -1,5 +1,11 @@
 "use strict";
 
+const {
+  DEFAULT_RESET_PASSWORD_URL,
+  emailSenders,
+  syncEmailSettings,
+  wantedEmailSettings,
+} = require("./utils/email-settings");
 const { syncRolePermissions } = require("./utils/permissions");
 const { subscribeRetiredProviders } = require("./utils/retired-providers");
 
@@ -35,6 +41,22 @@ module.exports = {
       );
     } else {
       await syncRolePermissions(strapi, strapi.config.get("permissions"));
+    }
+
+    // Reset link and email templates come from src/utils/email-settings.js
+    if (process.env.EMAIL_SETTINGS_SYNC === "false") {
+      strapi.log.warn(
+        "[email-settings] EMAIL_SETTINGS_SYNC=false: email settings left as they are in the database"
+      );
+    } else {
+      await syncEmailSettings(
+        strapi,
+        wantedEmailSettings({
+          ...emailSenders(process.env, strapi.config.get("plugin.email")),
+          resetPasswordUrl:
+            process.env.FRONT_RESET_PASSWORD_URL || DEFAULT_RESET_PASSWORD_URL,
+        })
+      );
     }
   },
 };

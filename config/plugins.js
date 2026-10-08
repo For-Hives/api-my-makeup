@@ -1,6 +1,50 @@
-// Mailgun (A7, forgotten password) once MAILGUN_API_KEY and MAILGUN_DOMAIN
-// are both set; until then Strapi keeps its default provider (sendmail).
-// EU region unless MAILGUN_REGION=us.
+const {
+  DEFAULT_EMAIL_FROM,
+  DEFAULT_EMAIL_REPLY_TO,
+} = require("../src/utils/email-settings");
+
+// Emails (A7, forgotten password): Resend when RESEND_API_KEY is set,
+// otherwise Mailgun when MAILGUN_API_KEY and MAILGUN_DOMAIN are both set,
+// otherwise Strapi's default provider (sendmail).
+
+// Resend over SMTP (smtp.resend.com:465, TLS from the first byte): user
+// "resend", the API key as password. The key only sends from the domain
+// verified in Resend (send.my-makeup.fr), so EMAIL_FROM must use it.
+// 10 s timeouts instead of nodemailer's minutes: a stuck SMTP server fails
+// the forgot-password request (the front gives up after 15 s anyway).
+const resendEmail = (env) => {
+  const key = env("RESEND_API_KEY");
+
+  if (!key) {
+    return null;
+  }
+
+  return {
+    email: {
+      config: {
+        provider: "nodemailer",
+        providerOptions: {
+          host: "smtp.resend.com",
+          port: 465,
+          secure: true,
+          auth: {
+            user: "resend",
+            pass: key,
+          },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 10000,
+        },
+        settings: {
+          defaultFrom: env("EMAIL_FROM") || DEFAULT_EMAIL_FROM,
+          defaultReplyTo: env("EMAIL_REPLY_TO") || DEFAULT_EMAIL_REPLY_TO,
+        },
+      },
+    },
+  };
+};
+
+// Mailgun, EU region unless MAILGUN_REGION=us.
 const mailgunEmail = (env) => {
   const key = env("MAILGUN_API_KEY");
   const domain = env("MAILGUN_DOMAIN");
@@ -33,7 +77,7 @@ const mailgunEmail = (env) => {
 };
 
 module.exports = ({ env }) => ({
-  ...mailgunEmail(env),
+  ...(resendEmail(env) ?? mailgunEmail(env)),
   // /documentation lists every route and field of the API: development
   // only (tests and production run without it). DOCUMENTATION_ENABLED=true
   // turns it on anyway.
@@ -88,6 +132,6 @@ module.exports = ({ env }) => ({
         uploadStream: {},
         delete: {},
       },
-    }
+    },
   },
 });
