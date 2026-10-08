@@ -26,7 +26,18 @@ module.exports = ({ env }) => {
         },
       },
     },
-    "strapi::cors",
+    {
+      name: "strapi::cors",
+      config: {
+        // Browsers may call the API from the site only (no header for any
+        // other origin). CORS_ORIGINS, comma separated, replaces the list,
+        // e.g. CORS_ORIGINS=http://localhost:3000 for local development.
+        origin: env.array("CORS_ORIGINS", [
+          "https://my-makeup.fr",
+          "https://www.my-makeup.fr",
+        ]),
+      },
+    },
     "strapi::poweredBy",
     "strapi::logger",
     "strapi::query",
