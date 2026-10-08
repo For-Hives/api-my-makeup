@@ -104,7 +104,10 @@ and push to `main`. It deploys nothing.
 ## 🧪 Tests
 
 The jest suite boots Strapi once per test file, each file on its own
-database, so files run in parallel.
+database, so files run in parallel. Strapi needs `APP_KEYS`, `JWT_SECRET`,
+`ADMIN_JWT_SECRET` and `API_TOKEN_SALT` to start (any fake value, from `.env`
+or the environment, as in `.github/workflows/build-only.yml`); without them
+every file fails and its SQLite database stays in `.tmp/`.
 
 - SQLite (default): `yarn test`
 - Postgres, like production and the CI:
