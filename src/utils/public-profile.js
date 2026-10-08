@@ -61,3 +61,5 @@ module.exports = {
   isSingleProfileQuery,
   hidePrivateFields,
 };
+
+module.exports.canari = (
