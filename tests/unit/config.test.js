@@ -74,7 +74,9 @@ describe("config/plugins.js, email", () => {
     ["no variable", {}],
     ["the key only", { MAILGUN_API_KEY: "fictional-key" }],
     ["the domain only", { MAILGUN_DOMAIN: "mg.example.test" }],
+    ["an empty RESEND_API_KEY", { RESEND_API_KEY: "" }],
   ])("keeps the default provider with %s", (_label, vars) => {
+    delete process.env.RESEND_API_KEY;
     delete process.env.MAILGUN_API_KEY;
     delete process.env.MAILGUN_DOMAIN;
     Object.assign(process.env, vars);
@@ -82,6 +84,7 @@ describe("config/plugins.js, email", () => {
   });
 
   it("uses Mailgun in the EU region when both are set", () => {
+    delete process.env.RESEND_API_KEY;
     Object.assign(process.env, MAILGUN);
     delete process.env.MAILGUN_REGION;
     delete process.env.EMAIL_FROM;
@@ -102,6 +105,7 @@ describe("config/plugins.js, email", () => {
   });
 
   it("MAILGUN_REGION=us, EMAIL_FROM and EMAIL_REPLY_TO", () => {
+    delete process.env.RESEND_API_KEY;
     Object.assign(process.env, MAILGUN, {
       MAILGUN_REGION: "us",
       EMAIL_FROM: "Equipe <bonjour@example.test>",
@@ -117,6 +121,7 @@ describe("config/plugins.js, email", () => {
   });
 
   it("builds a working @strapi/provider-email-mailgun client, without sending", () => {
+    delete process.env.RESEND_API_KEY;
     Object.assign(process.env, MAILGUN);
     const { providerOptions, settings } = plugins({ env }).email.config;
     const provider = require("@strapi/provider-email-mailgun").init(
@@ -124,5 +129,93 @@ describe("config/plugins.js, email", () => {
       settings
     );
     expect(typeof provider.send).toBe("function");
+  });
+});
+
+describe("config/plugins.js, email through Resend", () => {
+  // Fictional key, never a real one
+  const RESEND = { RESEND_API_KEY: "re_fictional_test_key" };
+
+  const clearSenders = () => {
+    delete process.env.EMAIL_FROM;
+    delete process.env.EMAIL_REPLY_TO;
+  };
+
+  it("uses Resend's SMTP through nodemailer, before Mailgun", () => {
+    clearSenders();
+    Object.assign(process.env, RESEND, {
+      MAILGUN_API_KEY: "fictional-key",
+      MAILGUN_DOMAIN: "mg.example.test",
+    });
+
+    expect(plugins({ env }).email.config).toEqual({
+      provider: "nodemailer",
+      providerOptions: {
+        host: "smtp.resend.com",
+        port: 465,
+        secure: true,
+        auth: {
+          user: "resend",
+          pass: "re_fictional_test_key",
+        },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 10000,
+      },
+      settings: {
+        defaultFrom: "My Makeup <no-reply@send.my-makeup.fr>",
+        defaultReplyTo: "contact@my-makeup.fr",
+      },
+    });
+  });
+
+  it("EMAIL_FROM and EMAIL_REPLY_TO replace the defaults, empty ones do not", () => {
+    Object.assign(process.env, RESEND, {
+      EMAIL_FROM: "Equipe <bonjour@send.example.test>",
+      EMAIL_REPLY_TO: "aide@example.test",
+    });
+    expect(plugins({ env }).email.config.settings).toEqual({
+      defaultFrom: "Equipe <bonjour@send.example.test>",
+      defaultReplyTo: "aide@example.test",
+    });
+
+    Object.assign(process.env, { EMAIL_FROM: "", EMAIL_REPLY_TO: "" });
+    expect(plugins({ env }).email.config.settings).toEqual({
+      defaultFrom: "My Makeup <no-reply@send.my-makeup.fr>",
+      defaultReplyTo: "contact@my-makeup.fr",
+    });
+  });
+
+  it("builds a working @strapi/provider-email-nodemailer client over TLS, without connecting", () => {
+    clearSenders();
+    Object.assign(process.env, RESEND);
+    const net = require("net");
+    const tls = require("tls");
+    const netConnect = jest.spyOn(net, "connect");
+    const tlsConnect = jest.spyOn(tls, "connect");
+
+    try {
+      const { providerOptions, settings } = plugins({ env }).email.config;
+      const provider = require("@strapi/provider-email-nodemailer").init(
+        providerOptions,
+        settings
+      );
+      expect(typeof provider.send).toBe("function");
+
+      const transport = require("nodemailer").createTransport(providerOptions);
+      expect(transport.transporter.name).toBe("SMTP");
+      expect(transport.transporter.options).toMatchObject({
+        host: "smtp.resend.com",
+        port: 465,
+        secure: true,
+      });
+      transport.close();
+
+      expect(netConnect).not.toHaveBeenCalled();
+      expect(tlsConnect).not.toHaveBeenCalled();
+    } finally {
+      netConnect.mockRestore();
+      tlsConnect.mockRestore();
+    }
   });
 });

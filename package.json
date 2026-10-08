@@ -33,6 +33,7 @@
     "@strapi/plugin-i18n": "4.26.2",
     "@strapi/plugin-users-permissions": "4.26.2",
     "@strapi/provider-email-mailgun": "4.26.2",
+    "@strapi/provider-email-nodemailer": "4.26.2",
     "@strapi/strapi": "4.26.2",
     "fuse.js": "6.6.2",
     "lodash": "4.18.1",

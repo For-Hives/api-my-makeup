@@ -5,6 +5,8 @@
 // leaves the machine.
 process.env.MAILGUN_API_KEY = "fictional-key";
 process.env.MAILGUN_DOMAIN = "mg.example.test";
+// Resend comes first: an empty key (dotenv never overrides it) keeps it off
+process.env.RESEND_API_KEY = "";
 
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const { setupStrapi, stopStrapi } = require("../helpers/strapi");

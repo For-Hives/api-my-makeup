@@ -55,7 +55,7 @@ yarn develop
    ```
 
    `.env.example` lists the other variables (Cloudflare R2, Postgres,
-   Mailgun).
+   Resend, Mailgun).
 
 5. Run the development server:
    ```
@@ -75,31 +75,46 @@ locked dependencies on Node 20, builds the admin panel, runs the jest
 suite on a Postgres service and builds the image, on every pull request
 and push to `main`. It deploys nothing.
 
+### Emails
+
+The forgotten password emails (A7) go through Resend's SMTP once
+`RESEND_API_KEY` is set (a key that can only send from
+`send.my-makeup.fr`). At every start, the reset link
+(`FRONT_RESET_PASSWORD_URL`) and the French reset and confirmation
+templates of `src/utils/email-settings.js` (sender, reply-to, subject,
+text) are written to the users-permissions settings: change that file, not
+the admin's email templates. Registration and email confirmation are left
+as they are. `EMAIL_SETTINGS_SYNC=false` skips the sync, for an emergency
+change made from the admin.
+
 ### Docker Environment Variables
 
-| Variable                | Description                                                      |
-| ----------------------- | ---------------------------------------------------------------- |
-| `HOST`                  | Strapi host listener                                             |
-| `PORT`                  | Strapi port listener                                             |
-| `APP_KEYS`              | Application keys                                                 |
-| `API_TOKEN_SALT`        | API token salt                                                   |
-| `ADMIN_JWT_SECRET`      | Admin JWT secret                                                 |
-| `JWT_SECRET`            | users-permissions JWT secret                                     |
-| `DB_CLIENT`             | Database client (`postgres` in the image)                        |
-| `DATABASE_HOST`         | Database host                                                    |
-| `DATABASE_PORT`         | Database port                                                    |
-| `DATABASE_NAME`         | Database name                                                    |
-| `DATABASE_USERNAME`     | Database username                                                |
-| `DATABASE_PASSWORD`     | Database password                                                |
-| `CF_*`                  | Cloudflare R2 upload provider (`.env.example`)                   |
-| `CORS_ORIGINS`          | Browser origins, comma separated (default: the two my-makeup.fr) |
-| `MAILGUN_API_KEY`       | With `MAILGUN_DOMAIN`, sends emails through Mailgun              |
-| `MAILGUN_DOMAIN`        | Mailgun sending domain                                           |
-| `MAILGUN_REGION`        | `eu` (default) or `us`                                           |
-| `EMAIL_FROM`            | Default sender (default: `no-reply@<MAILGUN_DOMAIN>`)            |
-| `EMAIL_REPLY_TO`        | Default reply-to (default: the sender)                           |
-| `DOCUMENTATION_ENABLED` | `true` serves `/documentation` outside development               |
-| `PERMISSIONS_SYNC`      | `false` skips applying `config/permissions.js` at start          |
+| Variable                   | Description                                                                                          |
+| -------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `HOST`                     | Strapi host listener                                                                                 |
+| `PORT`                     | Strapi port listener                                                                                 |
+| `APP_KEYS`                 | Application keys                                                                                     |
+| `API_TOKEN_SALT`           | API token salt                                                                                       |
+| `ADMIN_JWT_SECRET`         | Admin JWT secret                                                                                     |
+| `JWT_SECRET`               | users-permissions JWT secret                                                                         |
+| `DB_CLIENT`                | Database client (`postgres` in the image)                                                            |
+| `DATABASE_HOST`            | Database host                                                                                        |
+| `DATABASE_PORT`            | Database port                                                                                        |
+| `DATABASE_NAME`            | Database name                                                                                        |
+| `DATABASE_USERNAME`        | Database username                                                                                    |
+| `DATABASE_PASSWORD`        | Database password                                                                                    |
+| `CF_*`                     | Cloudflare R2 upload provider (`.env.example`)                                                       |
+| `CORS_ORIGINS`             | Browser origins, comma separated (default: the two my-makeup.fr)                                     |
+| `RESEND_API_KEY`           | Sends emails through Resend (SMTP), before Mailgun                                                   |
+| `MAILGUN_API_KEY`          | With `MAILGUN_DOMAIN`, sends emails through Mailgun                                                  |
+| `MAILGUN_DOMAIN`           | Mailgun sending domain                                                                               |
+| `MAILGUN_REGION`           | `eu` (default) or `us`                                                                               |
+| `EMAIL_FROM`               | Sender (default: `My Makeup <no-reply@send.my-makeup.fr>`, `no-reply@<MAILGUN_DOMAIN>` with Mailgun) |
+| `EMAIL_REPLY_TO`           | Reply-to (default: `contact@my-makeup.fr`, the sender with Mailgun)                                  |
+| `FRONT_RESET_PASSWORD_URL` | Link of the reset email (default: `https://my-makeup.fr/auth/reinitialiser`)                         |
+| `EMAIL_SETTINGS_SYNC`      | `false` skips writing the email settings at start                                                    |
+| `DOCUMENTATION_ENABLED`    | `true` serves `/documentation` outside development                                                   |
+| `PERMISSIONS_SYNC`         | `false` skips applying `config/permissions.js` at start                                              |
 
 ## 🧪 Tests
 
