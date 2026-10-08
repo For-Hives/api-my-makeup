@@ -53,6 +53,7 @@ const grant = async (roleType, action) => {
 };
 
 describe("admin users never reach the custom endpoints", () => {
+  let jwt;
   let file;
 
   beforeAll(async () => {
@@ -114,6 +115,12 @@ describe("admin users never reach the custom endpoints", () => {
       .update({ where: { id: profile.id }, data: byAdmin });
 
     await grant("public", "api::searching.searching.searchMakeup");
+    await grant("authenticated", "api::makeup-artiste.me-makeup.meMakeup");
+    await grant("authenticated", "api::makeup-artiste.me-makeup.updateMakeup");
+
+    jwt = strapi.plugins["users-permissions"].services.jwt.issue({
+      id: user.id,
+    });
   }, 60000);
 
   afterAll(async () => {
@@ -133,6 +140,33 @@ describe("admin users never reach the custom endpoints", () => {
     expect(findKeys(response.body, ["password", "resetPasswordToken"])).toEqual(
       []
     );
+    expectNoAdminData(response.body);
+  });
+
+  it("GET /api/me-makeup keeps the pictures but no admin data", async () => {
+    const response = await request(strapi.server.httpServer)
+      .get("/api/me-makeup")
+      .set("Authorization", `Bearer ${jwt}`)
+      .expect(200);
+
+    expect(response.body.main_picture.url).toBe(file.url);
+    expect(response.body.image_gallery[0].url).toBe(file.url);
+    expect(response.body.user.username).toBe("exposure");
+    expect(response.body.user.role.type).toBe("authenticated");
+    expectNoAdminData(response.body);
+  });
+
+  it("PATCH /api/me-makeup keeps the pictures but no admin data", async () => {
+    const response = await request(strapi.server.httpServer)
+      .patch("/api/me-makeup")
+      .set("Authorization", `Bearer ${jwt}`)
+      .send({ city: "Annecy" })
+      .expect(200);
+
+    expect(response.body.city).toBe("Annecy");
+    expect(response.body.main_picture.url).toBe(file.url);
+    expect(response.body.image_gallery[0].url).toBe(file.url);
+    expect(response.body.user.username).toBe("exposure");
     expectNoAdminData(response.body);
   });
 });

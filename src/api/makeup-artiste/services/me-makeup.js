@@ -77,11 +77,23 @@ module.exports = {
       }
     );
 
+    // Same shape as populate: "*" without createdBy/updatedBy, which
+    // returned the admin users (email, bcrypt hash, resetPasswordToken).
     return strapi.entityService.findOne(
       "api::makeup-artiste.makeup-artiste",
       updated.id,
       {
-        populate: "*",
+        populate: {
+          main_picture: true,
+          skills: true,
+          experiences: true,
+          courses: true,
+          service_offers: true,
+          network: true,
+          language: true,
+          user: true,
+          image_gallery: true,
+        },
       }
     );
   },
@@ -95,9 +107,10 @@ module.exports = {
       "api::makeup-artiste.makeup-artiste",
       {
         populate: {
-          main_picture: {
-            populate: "*",
-          },
+          // Media scalars only, and the user without its createdBy/updatedBy:
+          // populate: "*" on them returned the admin users (email, bcrypt
+          // hash, resetPasswordToken).
+          main_picture: true,
           skills: {
             populate: "*",
           },
@@ -117,11 +130,12 @@ module.exports = {
             populate: "*",
           },
           user: {
-            populate: "*",
+            populate: {
+              role: true,
+              makeup_artiste: true,
+            },
           },
-          image_gallery: {
-            populate: "*",
-          },
+          image_gallery: true,
         },
         filters: {
           user: {
