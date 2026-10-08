@@ -14,7 +14,10 @@ const sleep = (milliseconds) => {
 // files in parallel (SQLite file, or Postgres database with TEST_DB_CLIENT).
 const testDatabaseName = () => {
   const file = path.basename(expect.getState().testPath || "app", ".test.js");
-  const slug = file.toLowerCase().replace(/[^a-z0-9]+/g, "_").slice(0, 40);
+  const slug = file
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .slice(0, 40);
   return `mm_${slug}_${process.pid}_test`;
 };
 

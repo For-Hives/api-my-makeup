@@ -146,10 +146,11 @@ To set up both the API and the My-Makeup frontend app:
 4. Start both servers:
    - API: `yarn develop` in the api-my-makeup directory
    - Frontend: `bun dev` in the my-makeup directory
-5. Set up initial permissions in the Strapi admin panel (`localhost:1337/admin`):
-   - Go to Settings > Roles & Permissions
-   - In the Public role, check all boxes under "makeup-artists"
-   - In the Authenticated role, check all boxes for all permissions
+5. Nothing to tick in Settings > Roles & Permissions: the Public and
+   Authenticated permissions are declared in `config/permissions.js` and
+   applied at every start (anything else ticked on these two roles is
+   removed). Change that file, not the admin. `PERMISSIONS_SYNC=false`
+   skips the sync, for an emergency change made from the admin.
 
 
 ## Contact
