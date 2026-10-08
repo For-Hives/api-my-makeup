@@ -24,9 +24,11 @@ const EXPECTED = {
     "api::talent.talent.findOne",
     "plugin::users-permissions.auth.callback",
     "plugin::users-permissions.auth.connect",
+    "plugin::users-permissions.auth.emailConfirmation",
     "plugin::users-permissions.auth.forgotPassword",
     "plugin::users-permissions.auth.register",
     "plugin::users-permissions.auth.resetPassword",
+    "plugin::users-permissions.auth.sendEmailConfirmation",
   ],
   authenticated: [
     "api::makeup-artiste.me-makeup.deleteMakeup",
@@ -172,7 +174,7 @@ describe("role permissions declared in config/permissions.js", () => {
 
     expect(await rowsOf("public")).toEqual(before);
     expect(messages).toEqual([
-      "[permissions] public: 12 actions, 0 added, 0 removed; authenticated: 6 actions, 0 added, 0 removed",
+      "[permissions] public: 14 actions, 0 added, 0 removed; authenticated: 6 actions, 0 added, 0 removed",
     ]);
   });
 
