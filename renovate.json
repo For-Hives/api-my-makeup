@@ -1,31 +1,52 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": [
+    "config:recommended"
+  ],
   "timezone": "Europe/Paris",
   "automerge": false,
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
     "enabled": true,
     "automerge": false,
-    "labels": ["security"]
+    "labels": [
+      "security"
+    ]
   },
   "packageRules": [
     {
+      "description": "Strapi 5 is a migration, not an update: no @strapi package above 4, security alerts included (allowedVersions filters the versions those alerts can pick). The v3 replaces Strapi",
+      "matchPackageNames": [
+        "@strapi/**"
+      ],
+      "allowedVersions": "<5"
+    },
+    {
       "description": "Strapi 4 stays on Node 20 and on its 4.26 line: no minor or major update outside a security fix (those go through vulnerabilityAlerts, which overrides this rule)",
-      "matchUpdateTypes": ["major", "minor"],
+      "matchUpdateTypes": [
+        "major",
+        "minor"
+      ],
       "enabled": false
     },
     {
       "description": "The remaining patch updates, in one weekly pull request, never merged automatically",
-      "matchUpdateTypes": ["patch"],
+      "matchUpdateTypes": [
+        "patch"
+      ],
       "groupName": "patch updates",
       "groupSlug": "patch-updates",
-      "schedule": ["before 6am on monday"],
+      "schedule": [
+        "before 6am on monday"
+      ],
       "automerge": false
     },
     {
       "description": "Pinned for the Strapi 4 admin panel",
-      "matchPackageNames": ["react-router-dom", "styled-components"],
+      "matchPackageNames": [
+        "react-router-dom",
+        "styled-components"
+      ],
       "enabled": false
     }
   ]
