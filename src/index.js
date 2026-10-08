@@ -9,7 +9,12 @@ module.exports = {
    *
    * This gives you an opportunity to extend code.
    */
-  register(/*{ strapi }*/) {},
+  register({ strapi }) {
+    // With proxy: true (config/server.js), trust only the LAST entry of
+    // X-Forwarded-For, the one Traefik adds: the entries before it come
+    // from the client and are free to lie.
+    strapi.server.app.maxIpsCount = 1;
+  },
 
   /**
    * An asynchronous bootstrap function that runs before
