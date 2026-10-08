@@ -42,7 +42,7 @@
     },
     "seo_description": {
       "type": "string",
-      "maxLength": 120,
+      "maxLength": 155,
       "required": true
     },
     "slug": {
