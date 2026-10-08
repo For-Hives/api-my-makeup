@@ -1,4 +1,12 @@
-.env
-tests
+node_modules
+.git
 .tmp
+.cache
+build
+tests
+.env*
 .idea
+.github
+.husky
+coverage
+*.log
