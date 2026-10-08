@@ -6,12 +6,21 @@
  * An artist publishes her email and phone for her profile page. Lists
  * (search, directory) never carry them: one request used to return every
  * email and phone of the site. The account linked to the profile is never
- * public.
+ * public. The city is the public one (« Annecy (74) »), never the street a
+ * few artists typed there (UI-11, src/utils/public-city.js).
+ *
+ * The pictures of a profile can be populated with their `related` relation
+ * (populate[main_picture][populate]=related, or =*): every entry that uses
+ * the file, as stored, with the city as typed, the score and, populated
+ * further, the network and the account. It never leaves the API.
  */
 
 const _ = require("lodash");
+const { villePublique } = require("./public-city");
 
 const CONTACT_FIELDS = ["email", "phone"];
+
+const MEDIA_FIELDS = ["main_picture", "image_gallery"];
 
 /**
  * True when a /api/makeup-artistes query asks for one profile by its
@@ -36,8 +45,24 @@ const isSingleProfileQuery = (query) => {
 };
 
 /**
- * Removes the account, and unless `keepContacts` the email and phone, from
- * one entry of a content API response (`{ id, attributes }`), in place.
+ * Removes the `related` relation of the files of a media field
+ * (`{ data: file }` or `{ data: [file] }`), in place.
+ *
+ * @param {object} media
+ */
+const hideFileRelations = (media) => {
+  [].concat(media?.data ?? []).forEach((file) => {
+    if (file?.attributes) {
+      delete file.attributes.related;
+    }
+  });
+};
+
+/**
+ * Removes the account, the `related` relation of the pictures, and unless
+ * `keepContacts` the email and phone, from one entry of a content API
+ * response (`{ id, attributes }`), and replaces its city by the public one
+ * (null when nothing can be shown), in place.
  *
  * @param {object} entry
  * @param {{ keepContacts: boolean }} options
@@ -50,6 +75,11 @@ const hidePrivateFields = (entry, { keepContacts }) => {
   }
 
   delete attributes.user;
+  MEDIA_FIELDS.forEach((field) => hideFileRelations(attributes[field]));
+
+  if ("city" in attributes) {
+    attributes.city = villePublique(attributes.city) || null;
+  }
 
   if (!keepContacts && _.isPlainObject(attributes.network)) {
     CONTACT_FIELDS.forEach((field) => delete attributes.network[field]);
