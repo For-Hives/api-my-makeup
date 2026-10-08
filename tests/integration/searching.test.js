@@ -1,6 +1,7 @@
 // S09: GET /api/searching answers without a term, returns 50 profiles at
-// most, counts available=null as available, and carries no contact
-// details, account or internal score.
+// most, counts available=null as available, carries no contact details,
+// account or internal score, and brakes at 60 requests per minute per
+// client address.
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const { setupStrapi, stopStrapi } = require("../helpers/strapi");
 const { http, createAccount, findKeys } = require("../helpers/fixtures");
@@ -129,5 +130,16 @@ describe("GET /api/searching", () => {
     );
 
     expect(response.body[0].username).toBe("chamonix-null");
+  });
+
+  it("S09 - the 61st search of the minute from one address gets a 429", async () => {
+    const client = newClient();
+    for (let i = 0; i < 60; i++) {
+      await search(client, { search: "Lyon" }).expect(200);
+    }
+
+    await search(client, { search: "Lyon" }).expect(429);
+    // another visitor is not affected
+    await search(newClient(), { search: "Lyon" }).expect(200);
   });
 });
