@@ -136,7 +136,9 @@ describe("admin users never reach the custom endpoints", () => {
     expect(response.body).toHaveLength(1);
     expect(response.body[0].main_picture.url).toBe(file.url);
     expect(response.body[0].image_gallery[0].url).toBe(file.url);
-    expect(response.body[0].user).toEqual({ username: "exposure" });
+    // no account in public results, the profile's own username is enough
+    expect(response.body[0].user).toBeUndefined();
+    expect(response.body[0].username).toBe("exposure");
     expect(findKeys(response.body, ["password", "resetPasswordToken"])).toEqual(
       []
     );
@@ -151,8 +153,13 @@ describe("admin users never reach the custom endpoints", () => {
 
     expect(response.body.main_picture.url).toBe(file.url);
     expect(response.body.image_gallery[0].url).toBe(file.url);
+    // id, username and email only: no role, no hash, no tokens (S06)
+    expect(Object.keys(response.body.user).sort()).toEqual([
+      "email",
+      "id",
+      "username",
+    ]);
     expect(response.body.user.username).toBe("exposure");
-    expect(response.body.user.role.type).toBe("authenticated");
     expectNoAdminData(response.body);
   });
 

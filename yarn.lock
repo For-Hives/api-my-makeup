@@ -2763,6 +2763,15 @@
   resolved "https://registry.yarnpkg.com/@strapi/provider-audit-logs-local/-/provider-audit-logs-local-4.26.2.tgz#b1b1ec1743b74c7c1efaa26bf5519347c40df170"
   integrity sha512-m+p5Kosi9a+Y5DkEe9yK3oeTEMRlP7y58h3Z86Cd3OAuisecTnxRdo5pgg2STFuLnvOS8nEhs4/qzdqXWc7qhw==
 
+"@strapi/provider-email-mailgun@4.26.2":
+  version "4.26.2"
+  resolved "https://registry.yarnpkg.com/@strapi/provider-email-mailgun/-/provider-email-mailgun-4.26.2.tgz#b095e58e987358dca868c5fd081524a3f5cced10"
+  integrity sha512-IN1VMizwglMmd4SedNh6iqyp28NtlzxfX33QGLDVgAx/KyPnu2Z5XZRcpAudQaxsSkR525GXhTn6bOUrzpNwtQ==
+  dependencies:
+    "@strapi/utils" "4.26.2"
+    form-data "4.0.5"
+    mailgun.js "8.2.2"
+
 "@strapi/provider-email-sendmail@4.26.2":
   version "4.26.2"
   resolved "https://registry.yarnpkg.com/@strapi/provider-email-sendmail/-/provider-email-sendmail-4.26.2.tgz#4797b6fdb3540ac8fb671ca4c6c43c7508f3a70f"
@@ -3961,6 +3970,16 @@ axios@1.15.2:
     form-data "^4.0.5"
     proxy-from-env "^2.1.0"
 
+axios@^1.3.3:
+  version "1.20.0"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.20.0.tgz#515513445aa60e71d04b6521ca6210829ccb4786"
+  integrity sha512-r8aOh8j9cGKpgQAqpzrUHnSIc6a59Y3Xf/cv8sy1DrHCkZHzQGEuoq1tARk6qSyDdtQGSDgpb9kFlruzPvrgwg==
+  dependencies:
+    follow-redirects "^1.16.0"
+    form-data "^4.0.6"
+    https-proxy-agent "^5.0.1"
+    proxy-from-env "^2.1.0"
+
 b4a@^1.6.4, b4a@^1.8.1, b4a@^1.9.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/b4a/-/b4a-1.9.0.tgz#6336313b6e76b299c397afa68676ec6ebc788845"
@@ -4091,6 +4110,11 @@ bare-url@^2.2.2:
   integrity sha512-Gxa7UVWBr0/edU1b+TJhn/AZvMQUj9OGspvYsaTYQrAbZA4BOTZGL3LiZxvD+CeMlDH4juwD84+eTAp/bLYW5g==
   dependencies:
     bare-path "^3.0.0"
+
+base-64@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/base-64/-/base-64-1.0.0.tgz#09d0f2084e32a3fd08c2475b973788eee6ae8f4a"
+  integrity sha512-kwDPIFCGx0NZHog36dj+tHiwP4QMzsZ3AgMViUBKI0+V5n4U0ufTCUMhnQ04diaRI8EX/QcPfql7zlhZ7j4zgg==
 
 base64-js@^1.0.2, base64-js@^1.3.1:
   version "1.5.1"
@@ -6069,7 +6093,7 @@ fn.name@1.x.x:
   resolved "https://registry.yarnpkg.com/fn.name/-/fn.name-1.1.0.tgz#26cad8017967aea8731bc42961d04a3d5988accc"
   integrity sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==
 
-follow-redirects@^1.15.11:
+follow-redirects@^1.15.11, follow-redirects@^1.16.0:
   version "1.16.1"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.16.1.tgz#6e0efa40a727fb369b98dab15883ec34787d675e"
   integrity sha512-FNvFGzoMLWmE6Yj9spb/zjd7yiNCHiAW9/Tg9CXrQ8wuu32HtlJOwWO11OJafl5FfY3DxTdQ0vj42zU1kvv5jg==
@@ -6119,7 +6143,18 @@ fork-ts-checker-webpack-plugin@9.0.2:
     semver "^7.3.5"
     tapable "^2.2.1"
 
-form-data@^4.0.5:
+form-data@4.0.5:
+  version "4.0.5"
+  resolved "https://registry.yarnpkg.com/form-data/-/form-data-4.0.5.tgz#b49e48858045ff4cbf6b03e1805cebcad3679053"
+  integrity sha512-8RipRLol37bNs2bhoV67fiTEvdTrbMUYcFTiy3+wuuOnUog2QBHCZWXDRijWQfAkhBj2Uf5UnVaiWwA5vdd82w==
+  dependencies:
+    asynckit "^0.4.0"
+    combined-stream "^1.0.8"
+    es-set-tostringtag "^2.1.0"
+    hasown "^2.0.2"
+    mime-types "^2.1.12"
+
+form-data@^4.0.5, form-data@^4.0.6:
   version "4.0.6"
   resolved "https://registry.yarnpkg.com/form-data/-/form-data-4.0.6.tgz#28e864e1b786dbebb68db1f452f9635278665827"
   integrity sha512-vKatAh4SlVfgbv+YtmhiRjhEMJsYpsG1Y2rMQtR+SVSbytsSD1YGzDIcrAJmdFec88u/+VoGmxnl+80gL1tRCQ==
@@ -6789,7 +6824,7 @@ http2-wrapper@^1.0.0-beta.5.2:
     quick-lru "^5.1.1"
     resolve-alpn "^1.0.0"
 
-https-proxy-agent@5.0.1, https-proxy-agent@^5.0.0:
+https-proxy-agent@5.0.1, https-proxy-agent@^5.0.0, https-proxy-agent@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/https-proxy-agent/-/https-proxy-agent-5.0.1.tgz#c59ef224a04fe8b754f3db0063a25ea30d0005d6"
   integrity sha512-dFcAjpTQFgoLMzC2VwU+C/CbS7uRL0lWmxDITmqm7C+7F0Odmj6s9l6alZc6AELXhrnggM2CeWSXHGOdX2YtwA==
@@ -8434,6 +8469,15 @@ mailcomposer@3.12.0:
     buildmail "3.10.0"
     libmime "2.1.0"
 
+mailgun.js@8.2.2:
+  version "8.2.2"
+  resolved "https://registry.yarnpkg.com/mailgun.js/-/mailgun.js-8.2.2.tgz#97133d69fd76b77c67eedb394fd85b1875cac600"
+  integrity sha512-po/KtofzrTuKhHLenbmliDsVVOFANwcfDFUGnggwnyZJmZz7JgBlV6nzK9o2Fk+OK2SiBmJTK25RbkAj57Hd+Q==
+  dependencies:
+    axios "^1.3.3"
+    base-64 "^1.0.0"
+    url-join "^4.0.1"
+
 make-dir@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/make-dir/-/make-dir-3.1.0.tgz#415e967046b3a7f1d185277d84aa58203726a13f"
@@ -8623,7 +8667,7 @@ mime-db@1.52.0:
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.54.0.tgz#cddb3ee4f9c64530dff640236661d42cb6a314f5"
   integrity sha512-aU5EJuIN2WDemCcAp2vFBfp/m4EAhWJnUNSSw0ixs7/kXbd6Pg64EmwJkNdFhB8aWt1sH2CTXrLxo/iAGV3oPQ==
 
-mime-types@2.1.35, mime-types@^2.1.18, mime-types@^2.1.28, mime-types@^2.1.31, mime-types@^2.1.35, mime-types@~2.1.24, mime-types@~2.1.34:
+mime-types@2.1.35, mime-types@^2.1.12, mime-types@^2.1.18, mime-types@^2.1.28, mime-types@^2.1.31, mime-types@^2.1.35, mime-types@~2.1.24, mime-types@~2.1.34:
   version "2.1.35"
   resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.35.tgz#381a871b62a734450660ae3deee44813f70d959a"
   integrity sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==
@@ -11818,7 +11862,7 @@ uri-js@^4.2.2, uri-js@^4.4.1:
   dependencies:
     punycode "^2.1.0"
 
-url-join@4.0.1:
+url-join@4.0.1, url-join@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/url-join/-/url-join-4.0.1.tgz#b642e21a2646808ffa178c4c5fda39844e12cde7"
   integrity sha512-jk1+QP6ZJqyOiuEI9AEWQfju/nB2Pw466kbA0LEZljHwKeMgd9WrAEgEGxjPDD2+TNbbb37rTyhEfrCXfuKXnA==

@@ -1,5 +1,98 @@
 "use strict";
+const _ = require("lodash");
 const Fuse = require("fuse.js");
+
+const PROFILE_UID = "api::makeup-artiste.makeup-artiste";
+
+// Search results are public: an explicit list of fields, without the
+// account, the internal score and the email and phone (one search used to
+// return the contact details of every artist).
+const PUBLIC_RESULT_FIELDS = [
+  "id",
+  "username",
+  "first_name",
+  "last_name",
+  "company_artist_name",
+  "speciality",
+  "city",
+  "action_radius",
+  "available",
+  "pro",
+  "description",
+  "skills",
+  "experiences",
+  "courses",
+  "service_offers",
+  "language",
+  "main_picture",
+  "image_gallery",
+  "search_score",
+];
+const PUBLIC_NETWORK_FIELDS = [
+  "id",
+  "youtube",
+  "facebook",
+  "instagram",
+  "website",
+  "linkedin",
+];
+// Until the search page paginates (UI-07, then 20 per page)
+const MAX_PUBLIC_RESULTS = 50;
+// Longer terms only slow Fuse down
+const MAX_TERM_LENGTH = 100;
+
+/**
+ * Keeps the public fields of a profile found by the search.
+ * @param {object} profile
+ * @returns {object}
+ */
+const toPublicResult = (profile) => {
+  const result = _.pick(profile, PUBLIC_RESULT_FIELDS);
+  if (profile.network !== undefined) {
+    result.network = profile.network
+      ? _.pick(profile.network, PUBLIC_NETWORK_FIELDS)
+      : null;
+  }
+  return result;
+};
+
+const searchTerm = (value) =>
+  typeof value === "string" ? value.trim().slice(0, MAX_TERM_LENGTH) : "";
+
+// available is null on the profiles where it was never set (47 in
+// production): they count as available instead of never showing up.
+const SEARCHABLE_FILTER = {
+  $or: [{ available: { $eq: true } }, { available: { $null: true } }],
+};
+
+const PROFILE_POPULATE = {
+  // Media scalars only: populating the file relations ("*") also
+  // returned createdBy/updatedBy, i.e. the admin users (email,
+  // bcrypt hash, resetPasswordToken) behind admin uploads.
+  main_picture: true,
+  skills: {
+    populate: "*",
+  },
+  experiences: {
+    populate: "*",
+  },
+  courses: {
+    populate: "*",
+  },
+  service_offers: {
+    populate: "*",
+  },
+  network: {
+    populate: "*",
+  },
+  language: {
+    populate: "*",
+  },
+  user: {
+    select: ["username"],
+  },
+  image_gallery: true,
+};
 
 const balancedKeys = [
   {
@@ -56,6 +149,35 @@ const balancedKeys = [
  */
 
 module.exports = {
+  /**
+   * Public search (GET /api/searching): the ranked profiles for `search`
+   * (or `city` alone), or the last updated profiles without any term,
+   * 50 at most, public fields only.
+   *
+   * @param {{ search?: string, city?: string }} params - Query string
+   * @returns {Promise<object[]>}
+   */
+  searchPublicMakeup: async (params) => {
+    const city = searchTerm(params?.city);
+    const search = searchTerm(params?.search) || city;
+
+    const profiles = search
+      ? await module.exports.searchingMakeup({
+          search,
+          ...(city && { city }),
+        })
+      : await strapi.entityService.findMany(PROFILE_UID, {
+          populate: PROFILE_POPULATE,
+          filters: SEARCHABLE_FILTER,
+          sort: { updatedAt: "desc" },
+          limit: MAX_PUBLIC_RESULTS,
+        });
+
+    return profiles.slice(0, MAX_PUBLIC_RESULTS).map(toPublicResult);
+  },
+
+  toPublicResult,
+
   searchingMakeup: async (params) => {
     try {
       if (!params || !params.search) {
@@ -63,41 +185,10 @@ module.exports = {
       }
 
       const allMakeupArtisteUsers = await strapi.entityService.findMany(
-        "api::makeup-artiste.makeup-artiste",
+        PROFILE_UID,
         {
-          populate: {
-            // Media scalars only: populating the file relations ("*") also
-            // returned createdBy/updatedBy, i.e. the admin users (email,
-            // bcrypt hash, resetPasswordToken) behind admin uploads.
-            main_picture: true,
-            skills: {
-              populate: "*",
-            },
-            experiences: {
-              populate: "*",
-            },
-            courses: {
-              populate: "*",
-            },
-            service_offers: {
-              populate: "*",
-            },
-            network: {
-              populate: "*",
-            },
-            language: {
-              populate: "*",
-            },
-            user: {
-              select: ["username"],
-            },
-            image_gallery: true,
-          },
-          filters: {
-            available: {
-              $eq: true,
-            },
-          },
+          populate: PROFILE_POPULATE,
+          filters: SEARCHABLE_FILTER,
         }
       );
 
