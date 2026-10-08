@@ -100,6 +100,20 @@ describe("UI-11 - public city on the public read paths", () => {
     expect(publicCities(response.body.data)).toEqual(PUBLIC);
   });
 
+  it.each([
+    "filters[city][$startsWith]=12",
+    "filters[$or][0][city][$contains]=rue",
+    "sort=city",
+    "sort[0]=city:desc",
+  ])("find refuses a filter or sort on the city (%s)", async (query) => {
+    const response = await http()
+      .get(`/api/makeup-artistes?${query}`)
+      .expect(400);
+
+    expect(response.body.data).toBeNull();
+    expect(JSON.stringify(response.body)).not.toMatch(STREET);
+  });
+
   it("find without the city field: no city added", async () => {
     const response = await http()
       .get("/api/makeup-artistes?fields[0]=username")

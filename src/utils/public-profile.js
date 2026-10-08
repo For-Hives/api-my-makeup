@@ -45,6 +45,35 @@ const isSingleProfileQuery = (query) => {
 };
 
 /**
+ * True when a query filters or sorts on the city: the public API returns
+ * the public city, but a filter (`filters[city][$startsWith]=12 r`) or a
+ * sort on the stored value would let anyone rebuild, letter by letter, the
+ * street a few artists typed there. The front never does either.
+ *
+ * @param {object} query - Parsed query string (ctx.query)
+ * @returns {boolean}
+ */
+const queriesTypedCity = (query) => {
+  const hasCityKey = (value) =>
+    Array.isArray(value)
+      ? value.some(hasCityKey)
+      : _.isPlainObject(value) &&
+        Object.entries(value).some(
+          ([key, inner]) => key === "city" || hasCityKey(inner)
+        );
+  const sortsOnCity = (value) => {
+    if (typeof value === "string") {
+      return value
+        .split(",")
+        .some((part) => part.trim().split(":")[0] === "city");
+    }
+    return Array.isArray(value) ? value.some(sortsOnCity) : hasCityKey(value);
+  };
+
+  return hasCityKey(query?.filters) || sortsOnCity(query?.sort);
+};
+
+/**
  * Removes the `related` relation of the files of a media field
  * (`{ data: file }` or `{ data: [file] }`), in place.
  *
@@ -89,5 +118,6 @@ const hidePrivateFields = (entry, { keepContacts }) => {
 module.exports = {
   CONTACT_FIELDS,
   isSingleProfileQuery,
+  queriesTypedCity,
   hidePrivateFields,
 };

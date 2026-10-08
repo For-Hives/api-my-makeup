@@ -2,6 +2,7 @@ const { describe, it, expect } = require("@jest/globals");
 const {
   isSingleProfileQuery,
   hidePrivateFields,
+  queriesTypedCity,
 } = require("../../src/utils/public-profile");
 
 describe("isSingleProfileQuery", () => {
@@ -114,5 +115,31 @@ describe("hidePrivateFields", () => {
     const value = { id: 2, attributes: { network: null } };
     hidePrivateFields(value, { keepContacts: false });
     expect(value.attributes.network).toBeNull();
+  });
+});
+
+describe("queriesTypedCity", () => {
+  it.each([
+    [{ filters: { city: { $startsWith: "12 r" } } }, true],
+    [{ filters: { city: "Annecy" } }, true],
+    [
+      { filters: { $or: [{ username: "a" }, { city: { $contains: "rue" } }] } },
+      true,
+    ],
+    [{ filters: { $and: [{ $not: { city: { $null: true } } }] } }, true],
+    [{ sort: "city" }, true],
+    [{ sort: "city:desc" }, true],
+    [{ sort: "username,city:asc" }, true],
+    [{ sort: ["id:asc", "city:desc"] }, true],
+    [{ sort: { city: "asc" } }, true],
+    [{ sort: [{ city: "asc" }] }, true],
+    [{ filters: { username: { $eq: "alice" } } }, false],
+    [{ sort: ["id:asc"], fields: ["username", "city"] }, false],
+    [{ sort: "username" }, false],
+    [{ populate: { main_picture: true } }, false],
+    [{}, false],
+    [undefined, false],
+  ])("%j -> %s", (query, expected) => {
+    expect(queriesTypedCity(query)).toBe(expected);
   });
 });
