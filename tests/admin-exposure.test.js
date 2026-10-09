@@ -127,7 +127,7 @@ describe("admin users never reach the custom endpoints", () => {
     await stopStrapi();
   });
 
-  it("GET /api/searching keeps the pictures but no admin data", async () => {
+  it("GET /api/searching keeps the main picture but no admin data", async () => {
     const response = await request(strapi.server.httpServer)
       .get("/api/searching")
       .query({ search: "Annecy" })
@@ -135,7 +135,8 @@ describe("admin users never reach the custom endpoints", () => {
 
     expect(response.body).toHaveLength(1);
     expect(response.body[0].main_picture.url).toBe(file.url);
-    expect(response.body[0].image_gallery[0].url).toBe(file.url);
+    // a result card: the gallery is read on the profile page only
+    expect(response.body[0].image_gallery).toBeUndefined();
     // no account in public results, the profile's own username is enough
     expect(response.body[0].user).toBeUndefined();
     expect(response.body[0].username).toBe("exposure");
