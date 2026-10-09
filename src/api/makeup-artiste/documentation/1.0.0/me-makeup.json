@@ -148,6 +148,142 @@
           }
         }
       }
+    },
+    "patch": {
+      "description": "Saves fields of the signed-in artist's profile. main_picture and image_gallery take file ids: a file already on her profile, or a file she sent through POST /upload that nothing uses yet. A picture that is replaced or removed is deleted for good (database and storage) once the profile is saved, unless another entry uses it.",
+      "responses": {
+        "200": {
+          "description": "OK",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MakeupArtisteResponse"
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Bad Request. \"File not allowed\" (error.details.files lists the refused ids): main_picture or image_gallery names a file that is not hers (another account's file, a file used by another entry, an admin upload, an unknown id, or a value that is not a file id). Nothing is saved.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Unauthorized",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              }
+            }
+          }
+        },
+        "403": {
+          "description": "Forbidden",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "Internal Server Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              }
+            }
+          }
+        }
+      },
+      "tags": [
+        "Makeup-artiste"
+      ],
+      "parameters": [],
+      "operationId": "patch/me-makeup",
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/MakeupArtisteRequest"
+            }
+          }
+        }
+      }
+    },
+    "delete": {
+      "description": "Deletes the signed-in artist's profile and account in one transaction, then her main picture, her gallery and the files she sent and never used (database and storage). If the deletion fails, the account, the profile and the pictures all stay.",
+      "responses": {
+        "200": {
+          "description": "OK",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "example": "User deleted"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Bad Request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Unauthorized",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              }
+            }
+          }
+        },
+        "403": {
+          "description": "Forbidden",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "Internal Server Error",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Error"
+              }
+            }
+          }
+        }
+      },
+      "tags": [
+        "Makeup-artiste"
+      ],
+      "parameters": [],
+      "operationId": "delete/me-makeup"
     }
   }
 }
