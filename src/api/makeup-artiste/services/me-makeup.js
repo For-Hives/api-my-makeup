@@ -371,8 +371,10 @@ module.exports = {
         // Pictures detached first: on Postgres, Strapi 4.26 deletes an
         // entry without its rows in files_related_morphs (deleteRelations
         // stops at its first relation when the database has foreign keys),
-        // and the files would look used for ever
-        await strapi.entityService.update(PROFILE_UID, profile.id, {
+        // and the files would look used for ever. Query layer: no
+        // entry.update event (webhooks) for a deletion
+        await strapi.db.query(PROFILE_UID).update({
+          where: { id: profile.id },
           data: { main_picture: null, image_gallery: [] },
         });
         await strapi.entityService.delete(PROFILE_UID, profile.id);

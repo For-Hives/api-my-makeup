@@ -668,7 +668,17 @@ describe("/api/me-makeup", () => {
       const others = await upload(staying);
       await as(staying, "patch", { main_picture: others.id }).expect(200);
 
-      await as(leaving, "delete").expect(200);
+      const emit = jest.spyOn(strapi.eventHub, "emit");
+      try {
+        await as(leaving, "delete").expect(200);
+        // a deletion, never announced as an update (webhooks)
+        const profileEvents = emit.mock.calls
+          .filter(([, payload]) => payload?.uid === PROFILE_UID)
+          .map(([event]) => event);
+        expect(profileEvents).toEqual(["entry.delete"]);
+      } finally {
+        emit.mockRestore();
+      }
 
       for (const file of [main, first, second, loose]) {
         await expectRemoved(file);
