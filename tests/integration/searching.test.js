@@ -2,9 +2,9 @@
 // answer (200 at most), counts available=null as available, keeps the fields
 // of a result card only (no contact details, account or score), finds the
 // profiles that match every word (accents ignored, one typo per 5 letters)
-// and nothing for an unknown term, an email or a phone (UI-07), lets the
-// city rank but never add a profile, and brakes at 60 requests per minute
-// per client address.
+// and nothing for an unknown term, an email, a phone or a street (UI-07,
+// UI-11), lets the city rank but never add a profile, and brakes at 60
+// requests per minute per client address.
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const { setupStrapi, stopStrapi } = require("../helpers/strapi");
 const { http, createAccount, findKeys } = require("../helpers/fixtures");
@@ -30,8 +30,8 @@ const CARD_KEYS = [
 // More matches than the 50 the API used to return, and than its old
 // internal cap of 100
 const LYON_PROFILES = 120;
-// chamonix-null, placeholder, offres and compte
-const OTHER_SEARCHABLE = 4;
+// chamonix-null, placeholder, lilas, offres and compte
+const OTHER_SEARCHABLE = 5;
 
 let nextAddress = 1;
 // each test searches from its own client address (proxy: true)
@@ -83,6 +83,12 @@ describe("GET /api/searching", () => {
       city: "Grenoble",
       available: true,
       skills: [{ name: "zzz" }],
+    });
+    // a street typed in the city field: only « Chambéry (73) » is public
+    await createProfile("lilas", {
+      first_name: "Prenom Fictif",
+      city: "12 rue des Lilas, 73000 Chambéry",
+      available: true,
     });
     // words found only in a service offer, a skill description and, with
     // its accents, the description
@@ -234,6 +240,22 @@ describe("GET /api/searching", () => {
         "offres",
       ]);
     }
+  });
+
+  it("S09 - matches the public city, never the street typed in the field", async () => {
+    for (const term of ["Lilas", "rue des Lilas", "73000"]) {
+      const response = await search(newClient(), { search: term }).expect(200);
+
+      expect(response.body).toEqual([]);
+    }
+
+    // the commune is kept, typed without its accent
+    const response = await search(newClient(), {
+      search: "Chambery",
+      city: "Chambery",
+    }).expect(200);
+    expect(response.body.map((result) => result.username)).toEqual(["lilas"]);
+    expect(response.body[0].city).toBe("Chambéry (73)");
   });
 
   it("S09 - a word typed with its city still finds the profile there", async () => {

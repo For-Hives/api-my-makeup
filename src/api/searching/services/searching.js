@@ -1,7 +1,10 @@
 "use strict";
 const _ = require("lodash");
 const Fuse = require("fuse.js");
-const { avecVillePublique } = require("../../../utils/public-city");
+const {
+  avecVillePublique,
+  villePublique,
+} = require("../../../utils/public-city");
 
 const PROFILE_UID = "api::makeup-artiste.makeup-artiste";
 
@@ -38,8 +41,6 @@ const MAX_TERM_LENGTH = 100;
  * Keeps the fields of a result card of a profile found by the search, with
  * the public city (« Annecy (74) », never a street: UI-11,
  * src/utils/public-city.js), the skill names and the picture's scalars.
- * Called once the profiles are matched and sorted, so the search still
- * matches on the city as typed.
  * @param {object} profile
  * @returns {object}
  */
@@ -86,12 +87,14 @@ const withoutAccentsAll = (value) =>
     : withoutAccents(value);
 
 // What the search matches on, each key with the weight a profile it does not
-// match pays
+// match pays. The city is the public one (UI-11): a street or a postal code
+// typed in the city field is never searchable (« Lilas » does not find « 12
+// rue des Lilas, 74000 Annecy », « Annecy » does).
 const balancedKeys = [
   {
     name: "city",
     weight: 3,
-    getFn: (makeupArtiste) => makeupArtiste.city,
+    getFn: (makeupArtiste) => villePublique(makeupArtiste.city),
   },
   {
     name: "speciality",

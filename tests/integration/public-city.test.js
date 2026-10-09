@@ -131,20 +131,26 @@ describe("UI-11 - public city on the public read paths", () => {
     expect(JSON.stringify(response.body)).not.toMatch(STREET);
   });
 
-  it("search: matches on the city as typed, returns the public one", async () => {
+  it("search: matches on the public city, never on the street typed", async () => {
     // « Essais Fictifs » is only in what two artists typed
-    const response = await http()
+    await http()
       .get("/api/searching")
       .set("X-Forwarded-For", newClient())
       .query({ search: "Essais Fictifs" })
+      .expect(200)
+      .expect([]);
+
+    const response = await http()
+      .get("/api/searching")
+      .set("X-Forwarded-For", newClient())
+      .query({ search: "Annecy" })
       .expect(200);
 
-    expect(
-      response.body
-        .slice(0, 2)
-        .map((result) => result.username)
-        .sort()
-    ).toEqual(["adresse", "rue-seule"]);
+    expect(response.body.map((result) => result.username).sort()).toEqual([
+      "adresse",
+      "code-postal",
+      "lieux",
+    ]);
     for (const result of response.body) {
       expect(result.city).toBe(PUBLIC[result.username]);
     }
