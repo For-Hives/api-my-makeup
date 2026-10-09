@@ -3,6 +3,7 @@
 // no replacing an existing file, no attaching the file to an entry.
 // Accepted pictures go through sharp (NT-SHARP-API): the stored size is the
 // picture's, and the only generated format is a thumbnail of the same type.
+const path = require("path");
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const sharp = require("sharp");
 const { setupStrapi, stopStrapi } = require("../helpers/strapi");
@@ -115,8 +116,13 @@ describe("POST /api/upload", () => {
   };
 
   it("S13 - runs sharp 0.35.5 or later", () => {
-    // sharp 0.35 exports no package.json: read the version it reports
-    expect(atLeast(sharp.versions.sharp, "0.35.5")).toBe(true);
+    // The copy the upload plugin requires, nested or not. sharp 0.35
+    // exports no package.json: read the version it reports
+    const plugin = path.dirname(
+      require.resolve("@strapi/plugin-upload/package.json")
+    );
+    const pluginSharp = require(require.resolve("sharp", { paths: [plugin] }));
+    expect(atLeast(pluginSharp.versions.sharp, "0.35.5")).toBe(true);
   });
 
   it("S13 - accepts a 2 MB JPEG", async () => {
