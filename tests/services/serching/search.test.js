@@ -80,97 +80,23 @@ describe("test du service searching", () => {
       expect(makeupArtiste).toEqual(allMakeupArtiste);
     });
 
-    // todo : test search params if it is not empty and city is defined
-
-    it("should return some makeup artiste if search params is not empty and city is defined", async () => {
+    it("should return the whole profile a skill matches, with its score", async () => {
       strapi.entityService = {
         findMany: jest.fn().mockResolvedValue(allMakeupArtiste),
       };
 
+      // only the description of one skill holds « toboggan »: every other
+      // key adds its weight, 9.4 in all
       const makeupArtiste = await searchingMakeup({ search: "Toboggan" });
       expect(makeupArtiste).toEqual([
-        {
-          id: 5,
-          last_name: "Chevalier",
-          first_name: "Fanny",
-          speciality: "Ongles",
-          city: "Tours",
-          action_radius: 25,
-          available: true,
-          score: 2,
-          description: "Je suis Fanny",
-          createdAt: "2023-05-07T13:01:12.425Z",
-          updatedAt: "2023-05-07T16:03:00.753Z",
-          skills: [
-            {
-              id: 27,
-              name: "mains",
-              description: null,
-            },
-            {
-              id: 28,
-              name: "les pieds",
-              description: "toboggan",
-            },
-          ],
-          experiences: [
-            {
-              id: 34,
-              company: "Insti'art",
-              job_name: "Institue art",
-              city: "Paris",
-              date_start: "2018-04-11",
-              date_end: "2019-04-03",
-              description: "je coloriais les pieds avec ma langue",
-            },
-            {
-              id: 35,
-              company: "Insti'art2",
-              job_name: "Institue art 2",
-              city: "Paris",
-              date_start: "2018-04-11",
-              date_end: "2019-04-03",
-              description: "je coloriais les pieds avec ma langue",
-            },
-          ],
-          courses: [
-            {
-              id: 18,
-              diploma: "art et boté",
-              school: "diplomatica",
-              date_graduation: "2023-04-06",
-              course_description: "france",
-            },
-          ],
-          service_offers: [
-            {
-              id: 18,
-              name: "mains",
-              description: "je te colorie les mains en bleu comme shrek",
-              price: "69.0",
-            },
-          ],
-          network: {
-            id: 18,
-            youtube: "twitter.com",
-            facebook: "youtube.com",
-            instagram: "youtube.com",
-            website: "youtube.com",
-            linkedin: null,
-            phone: "0783510664",
-            email: "fanny@fe.fe",
-          },
-          user: {
-            username: "fanny",
-          },
-          search_score: 9.400000014901162,
-        },
+        { ...profileById(5), search_score: 9.400000014901162 },
       ]);
     });
 
-    // the network is not searched: an email or a phone finds nothing (UI-07)
+    // the network is not searched: an email or a phone finds nothing, even
+    // when the profile holds them (UI-07)
 
-    it.each(["sarah@gmail.com", "0782510664"])(
+    it.each(["sarah@example.test", "0600000001"])(
       "should return nothing for the email or phone of a profile (%s)",
       async (search) => {
         strapi.entityService = {
@@ -181,170 +107,64 @@ describe("test du service searching", () => {
       }
     );
 
-    it("should return some makeup artiste if search params is not empty and city is defined", async () => {
+    it("should rank the profiles of the city first, never add them", async () => {
       strapi.entityService = {
         findMany: jest.fn().mockResolvedValue(allMakeupArtiste),
       };
 
-      // only the city matches: Sarah's email no longer counts
+      // every profile has a « mains » skill: the two in Nantes come first
       const makeupArtiste = await searchingMakeup({
-        search: "sarah@gmail.com",
+        search: "mains",
         city: "Nantes",
       });
-      expect(makeupArtiste).toEqual([
-        {
-          action_radius: 25,
-          available: true,
-          city: "Nantes",
-          courses: [
-            {
-              course_description: "france",
-              date_graduation: "2023-04-06",
-              diploma: "art et boté",
-              id: 14,
-              school: "diplomatica",
-            },
-          ],
-          createdAt: "2023-05-06T17:23:27.214Z",
-          description: "Je suis steph",
-          experiences: [
-            {
-              city: "Paris",
-              company: "Insti'art",
-              date_end: "2019-04-03",
-              date_start: "2018-04-11",
-              description: "je coloriais les pieds avec ma langue",
-              id: 26,
-              job_name: "Institue art",
-            },
-            {
-              city: "Paris",
-              company: "Insti'art2",
-              date_end: "2019-04-03",
-              date_start: "2018-04-11",
-              description: "je coloriais les pieds avec ma langue",
-              id: 27,
-              job_name: "Institue art 2",
-            },
-          ],
-          first_name: "Milo",
-          id: 1,
-          last_name: "Lagrange",
-          network: {
-            email: null,
-            facebook: "youtube.com",
-            id: 14,
-            instagram: "youtube.com",
-            linkedin: null,
-            phone: null,
-            website: "youtube.com",
-            youtube: "twitter.com",
-          },
-          score: 4.5,
-          search_score: 7.4000000149011615,
-          service_offers: [
-            {
-              description: "je te colorie les mains en bleu comme shrek",
-              id: 14,
-              name: "mains",
-              price: "69.0",
-            },
-          ],
-          skills: [
-            {
-              description: null,
-              id: 19,
-              name: "mains",
-            },
-            {
-              description: null,
-              id: 20,
-              name: "les pieds",
-            },
-          ],
-          speciality: "mains",
-          updatedAt: "2023-05-06T17:37:49.724Z",
-          user: {
-            username: "milo.dx",
-          },
-        },
-        {
-          action_radius: 25,
-          available: true,
-          city: "Nantes",
-          courses: [
-            {
-              course_description: "france",
-              date_graduation: "2023-04-06",
-              diploma: "art et boté",
-              id: 15,
-              school: "diplomatica",
-            },
-          ],
-          createdAt: "2023-05-07T12:54:17.753Z",
-          description: "Je suis Julie",
-          experiences: [
-            {
-              city: "Paris",
-              company: "Insti'art",
-              date_end: "2019-04-03",
-              date_start: "2018-04-11",
-              description: "je coloriais les pieds avec ma langue",
-              id: 28,
-              job_name: "Institue art",
-            },
-            {
-              city: "Paris",
-              company: "Insti'art2",
-              date_end: "2019-04-03",
-              date_start: "2018-04-11",
-              description: "je coloriais les pieds avec ma langue",
-              id: 29,
-              job_name: "Institue art 2",
-            },
-          ],
-          first_name: "Julie",
-          id: 2,
-          last_name: "Dubois",
-          network: {
-            email: "julie@fe.fe",
-            facebook: "youtube.com",
-            id: 15,
-            instagram: "youtube.com",
-            linkedin: null,
-            phone: "0782510664",
-            website: "youtube.com",
-            youtube: "twitter.com",
-          },
-          score: 4,
-          search_score: 7.4000000149011615,
-          service_offers: [
-            {
-              description: "je te colorie les mains en bleu comme shrek",
-              id: 15,
-              name: "mains",
-              price: "69.0",
-            },
-          ],
-          skills: [
-            {
-              description: null,
-              id: 21,
-              name: "mains",
-            },
-            {
-              description: null,
-              id: 22,
-              name: "les pieds",
-            },
-          ],
-          speciality: "Pieds",
-          updatedAt: "2023-05-07T12:54:27.634Z",
-          user: {
-            username: "julie.dx",
-          },
-        },
+      expect(makeupArtiste.map((profile) => profile.id).slice(0, 2)).toEqual([
+        1, 2,
       ]);
+      expect(makeupArtiste).toHaveLength(allMakeupArtiste.length);
+
+      // an unknown term finds nothing, whatever the city
+      await expect(
+        searchingMakeup({ search: "sarah@example.test", city: "Nantes" })
+      ).resolves.toEqual([]);
+    });
+
+    it("should find the profiles that match every word, in any key", async () => {
+      strapi.entityService = {
+        findMany: jest.fn().mockResolvedValue(allMakeupArtiste),
+      };
+
+      // « mains » is a skill of every profile, « Nantes » the city of two
+      const makeupArtiste = await searchingMakeup({ search: "mains Nantes" });
+      expect(makeupArtiste.map((profile) => profile.id)).toEqual([1, 2]);
+
+      await expect(searchingMakeup({ search: "mains zzqq" })).resolves.toEqual(
+        []
+      );
+    });
+
+    it("should ignore the accents of the term and of the profile", async () => {
+      // under 5 letters a term must match without any error: « Sete » used
+      // to miss « Sète »
+      const sete = {
+        id: 8,
+        username: "lou",
+        last_name: "Martin",
+        first_name: "Lou",
+        speciality: "Teint",
+        city: "Sète",
+        available: true,
+        description: "Je fais le maquillage d'un événement",
+        skills: [],
+        service_offers: [],
+      };
+      strapi.entityService = {
+        findMany: jest.fn().mockResolvedValue([...allMakeupArtiste, sete]),
+      };
+
+      for (const search of ["Sete", "evenement", "événement"]) {
+        const makeupArtiste = await searchingMakeup({ search });
+        expect(makeupArtiste.map((profile) => profile.id)).toEqual([8]);
+      }
     });
 
     it("should find a word deep in a long description", async () => {
@@ -373,408 +193,108 @@ describe("test du service searching", () => {
   });
 });
 
+// What searchingMakeup loads (PROFILE_POPULATE: skills and service offers,
+// no picture here), and one network block to show it is never searched.
+// Fictional values only.
+const skills = (firstId, description = null) => [
+  { id: firstId, name: "mains", description: null },
+  { id: firstId + 1, name: "les pieds", description },
+];
+const serviceOffers = (id) => [
+  {
+    id,
+    name: "mains",
+    description: "je te colorie les mains en bleu comme shrek",
+    price: "69.0",
+  },
+];
+
 const allMakeupArtiste = [
   {
     id: 3,
+    username: "sarah.dx",
     last_name: "Gimber",
     first_name: "Sarah",
     speciality: "Joue",
     city: "Paris",
     action_radius: 25,
-    score: 4,
     available: true,
     description: "Je suis Sarah",
-    createdAt: "2023-05-07T12:55:32.273Z",
-    updatedAt: "2023-05-07T16:05:04.150Z",
-    skills: [
-      { id: 23, name: "mains", description: null },
-      { id: 24, name: "les pieds", description: null },
-    ],
-    experiences: [
-      {
-        id: 30,
-        company: "Insti'art",
-        job_name: "Institue art",
-        city: "Paris",
-        date_start: "2018-04-11",
-        date_end: "2019-04-03",
-        description: "je coloriais les pieds avec ma langue",
-      },
-      {
-        id: 31,
-        company: "Insti'art2",
-        job_name: "Institue art 2",
-        city: "Paris",
-        date_start: "2018-04-11",
-        date_end: "2019-04-03",
-        description: "je coloriais les pieds avec ma langue",
-      },
-    ],
-    courses: [
-      {
-        id: 16,
-        diploma: "art et boté",
-        school: "diplomatica",
-        date_graduation: "2023-04-06",
-        course_description: "france",
-      },
-    ],
-    service_offers: [
-      {
-        id: 16,
-        name: "mains",
-        description: "je te colorie les mains en bleu comme shrek",
-        price: "69.0",
-      },
-    ],
+    skills: skills(23),
+    service_offers: serviceOffers(16),
     network: {
       id: 16,
-      youtube: "twitter.com",
-      facebook: "youtube.com",
-      instagram: "youtube.com",
-      website: "youtube.com",
-      linkedin: null,
-      phone: null,
-      email: "sarah@gmail.com",
-    },
-    user: {
-      username: "sarah.dx",
+      instagram: "https://instagram.com/sarah.dx",
+      phone: "0600000001",
+      email: "sarah@example.test",
     },
   },
   {
     id: 1,
+    username: "milo.dx",
     last_name: "Lagrange",
     first_name: "Milo",
     speciality: "mains",
     city: "Nantes",
     action_radius: 25,
     available: true,
-    score: 4.5,
     description: "Je suis steph",
-    createdAt: "2023-05-06T17:23:27.214Z",
-    updatedAt: "2023-05-06T17:37:49.724Z",
-    skills: [
-      { id: 19, name: "mains", description: null },
-      { id: 20, name: "les pieds", description: null },
-    ],
-    experiences: [
-      {
-        id: 26,
-        company: "Insti'art",
-        job_name: "Institue art",
-        city: "Paris",
-        date_start: "2018-04-11",
-        date_end: "2019-04-03",
-        description: "je coloriais les pieds avec ma langue",
-      },
-      {
-        id: 27,
-        company: "Insti'art2",
-        job_name: "Institue art 2",
-        city: "Paris",
-        date_start: "2018-04-11",
-        date_end: "2019-04-03",
-        description: "je coloriais les pieds avec ma langue",
-      },
-    ],
-    courses: [
-      {
-        id: 14,
-        diploma: "art et boté",
-        school: "diplomatica",
-        date_graduation: "2023-04-06",
-        course_description: "france",
-      },
-    ],
-    service_offers: [
-      {
-        id: 14,
-        name: "mains",
-        description: "je te colorie les mains en bleu comme shrek",
-        price: "69.0",
-      },
-    ],
-    network: {
-      id: 14,
-      youtube: "twitter.com",
-      facebook: "youtube.com",
-      instagram: "youtube.com",
-      website: "youtube.com",
-      linkedin: null,
-      phone: null,
-      email: null,
-    },
-    user: {
-      username: "milo.dx",
-    },
+    skills: skills(19),
+    service_offers: serviceOffers(14),
   },
   {
     id: 2,
+    username: "julie.dx",
     last_name: "Dubois",
     first_name: "Julie",
     speciality: "Pieds",
     city: "Nantes",
     action_radius: 25,
     available: true,
-    score: 4,
     description: "Je suis Julie",
-    createdAt: "2023-05-07T12:54:17.753Z",
-    updatedAt: "2023-05-07T12:54:27.634Z",
-    skills: [
-      { id: 21, name: "mains", description: null },
-      { id: 22, name: "les pieds", description: null },
-    ],
-    experiences: [
-      {
-        id: 28,
-        company: "Insti'art",
-        job_name: "Institue art",
-        city: "Paris",
-        date_start: "2018-04-11",
-        date_end: "2019-04-03",
-        description: "je coloriais les pieds avec ma langue",
-      },
-      {
-        id: 29,
-        company: "Insti'art2",
-        job_name: "Institue art 2",
-        city: "Paris",
-        date_start: "2018-04-11",
-        date_end: "2019-04-03",
-        description: "je coloriais les pieds avec ma langue",
-      },
-    ],
-    courses: [
-      {
-        id: 15,
-        diploma: "art et boté",
-        school: "diplomatica",
-        date_graduation: "2023-04-06",
-        course_description: "france",
-      },
-    ],
-    service_offers: [
-      {
-        id: 15,
-        name: "mains",
-        description: "je te colorie les mains en bleu comme shrek",
-        price: "69.0",
-      },
-    ],
-    network: {
-      id: 15,
-      youtube: "twitter.com",
-      facebook: "youtube.com",
-      instagram: "youtube.com",
-      website: "youtube.com",
-      linkedin: null,
-      phone: "0782510664",
-      email: "julie@fe.fe",
-    },
-    user: {
-      username: "julie.dx",
-    },
+    skills: skills(21),
+    service_offers: serviceOffers(15),
   },
   {
     id: 4,
+    username: "eva.dx",
     last_name: "Tapernier",
     first_name: "Eva",
     speciality: "Cheveux",
     city: "Anger",
     action_radius: 25,
     available: true,
-    score: 3,
     description: "Je suis Eva",
-    createdAt: "2023-05-07T13:00:31.331Z",
-    updatedAt: "2023-05-07T13:00:31.331Z",
-    skills: [
-      { id: 25, name: "mains", description: null },
-      { id: 26, name: "les pieds", description: null },
-    ],
-    experiences: [
-      {
-        id: 32,
-        company: "Insti'art",
-        job_name: "Institue art",
-        city: "Paris",
-        date_start: "2018-04-11",
-        date_end: "2019-04-03",
-        description: "je coloriais les pieds avec ma langue",
-      },
-      {
-        id: 33,
-        company: "Insti'art2",
-        job_name: "Institue art 2",
-        city: "Paris",
-        date_start: "2018-04-11",
-        date_end: "2019-04-03",
-        description: "je coloriais les pieds avec ma langue",
-      },
-    ],
-    courses: [
-      {
-        id: 17,
-        diploma: "art et boté",
-        school: "diplomatica",
-        date_graduation: "2023-04-06",
-        course_description: "france",
-      },
-    ],
-    service_offers: [
-      {
-        id: 17,
-        name: "mains",
-        description: "je te colorie les mains en bleu comme shrek",
-        price: "69.0",
-      },
-    ],
-    network: {
-      id: 17,
-      youtube: "twitter.com",
-      facebook: "youtube.com",
-      instagram: "youtube.com",
-      website: "youtube.com",
-      linkedin: null,
-      phone: "0782510664",
-      email: "eva@fe.fe",
-    },
+    skills: skills(25),
+    service_offers: serviceOffers(17),
   },
   {
     id: 5,
+    username: "fanny",
     last_name: "Chevalier",
     first_name: "Fanny",
     speciality: "Ongles",
     city: "Tours",
     action_radius: 25,
     available: true,
-    score: 2,
     description: "Je suis Fanny",
-    createdAt: "2023-05-07T13:01:12.425Z",
-    updatedAt: "2023-05-07T16:03:00.753Z",
-    skills: [
-      { id: 27, name: "mains", description: null },
-      {
-        id: 28,
-        name: "les pieds",
-        description: "toboggan",
-      },
-    ],
-    experiences: [
-      {
-        id: 34,
-        company: "Insti'art",
-        job_name: "Institue art",
-        city: "Paris",
-        date_start: "2018-04-11",
-        date_end: "2019-04-03",
-        description: "je coloriais les pieds avec ma langue",
-      },
-      {
-        id: 35,
-        company: "Insti'art2",
-        job_name: "Institue art 2",
-        city: "Paris",
-        date_start: "2018-04-11",
-        date_end: "2019-04-03",
-        description: "je coloriais les pieds avec ma langue",
-      },
-    ],
-    courses: [
-      {
-        id: 18,
-        diploma: "art et boté",
-        school: "diplomatica",
-        date_graduation: "2023-04-06",
-        course_description: "france",
-      },
-    ],
-    service_offers: [
-      {
-        id: 18,
-        name: "mains",
-        description: "je te colorie les mains en bleu comme shrek",
-        price: "69.0",
-      },
-    ],
-    network: {
-      id: 18,
-      youtube: "twitter.com",
-      facebook: "youtube.com",
-      instagram: "youtube.com",
-      website: "youtube.com",
-      linkedin: null,
-      phone: "0783510664",
-      email: "fanny@fe.fe",
-    },
-    user: {
-      username: "fanny",
-    },
+    skills: skills(27, "toboggan"),
+    service_offers: serviceOffers(18),
   },
   {
     id: 6,
+    username: "edwige",
     last_name: "Cinquin",
     first_name: "Edwina",
     speciality: "Fesses",
     city: "Monpelier",
     action_radius: 25,
-    score: 0,
     available: true,
     description: "Je suis Edwige",
-    createdAt: "2023-05-07T13:02:09.598Z",
-    updatedAt: "2023-05-07T13:02:09.598Z",
-    skills: [
-      { id: 29, name: "mains", description: null },
-      { id: 30, name: "les pieds", description: null },
-    ],
-    experiences: [
-      {
-        id: 36,
-        company: "Insti'art",
-        job_name: "Institue art",
-        city: "Paris",
-        date_start: "2018-04-11",
-        date_end: "2019-04-03",
-        description: "je coloriais les pieds avec ma langue",
-      },
-      {
-        id: 37,
-        company: "Insti'art2",
-        job_name: "Institue art 2",
-        city: "Paris",
-        date_start: "2018-04-11",
-        date_end: "2019-04-03",
-        description: "je coloriais les pieds avec ma langue",
-      },
-    ],
-    courses: [
-      {
-        id: 19,
-        diploma: "art et boté",
-        school: "diplomatica",
-        date_graduation: "2023-04-06",
-        course_description: "france",
-      },
-    ],
-    service_offers: [
-      {
-        id: 19,
-        name: "mains",
-        description: "je te colorie les mains en bleu comme shrek",
-        price: "69.0",
-      },
-    ],
-    network: {
-      id: 19,
-      youtube: "twitter.com",
-      facebook: "youtube.com",
-      instagram: "youtube.com",
-      website: "youtube.com",
-      linkedin: null,
-      phone: "0782510664",
-      email: "edwige@fe.fe",
-    },
-    user: {
-      username: "edwige",
-    },
+    skills: skills(29),
+    service_offers: serviceOffers(19),
   },
 ];
+
+const profileById = (id) =>
+  allMakeupArtiste.find((makeupArtiste) => makeupArtiste.id === id);
