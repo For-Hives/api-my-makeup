@@ -3,11 +3,14 @@
 // no replacing an existing file, no attaching the file to an entry.
 // Accepted pictures go through sharp (NT-SHARP-API): the stored size is the
 // picture's, and the only generated format is a thumbnail of the same type.
+// UI-03: the file keeps the account that sent it in the private uploaded_by
+// column, which no route ever returns.
+const fs = require("fs");
 const path = require("path");
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const sharp = require("sharp");
 const { setupStrapi, stopStrapi } = require("../helpers/strapi");
-const { http, createAccount } = require("../helpers/fixtures");
+const { http, createAccount, findKeys } = require("../helpers/fixtures");
 const { atLeast } = require("../helpers/versions");
 const { sniffImageType } = require("../../src/utils/upload-rules");
 
@@ -254,5 +257,119 @@ describe("POST /api/upload", () => {
       .post("/api/upload")
       .attach("files", tinyPng, { filename: "x.png", contentType: "image/png" })
       .expect(403);
+  });
+
+  it("UI-03 - records the account that sent the file in uploaded_by", async () => {
+    const response = await upload(tinyPng, "portrait.png", "image/png").expect(
+      200
+    );
+    uploaded.push(...response.body);
+
+    expect(findKeys(response.body, ["uploaded_by"])).toEqual([]);
+    const row = await strapi.db
+      .query(FILE_UID)
+      .findOne({ where: { id: response.body[0].id } });
+    expect(row.uploaded_by).toBe(artist.user.id);
+  });
+
+  it("UI-03 - when uploaded_by cannot be written, the new files are removed and the upload fails", async () => {
+    const rowsBefore = await fileCount();
+    const updateMany = jest
+      .spyOn(strapi.db.query(FILE_UID), "updateMany")
+      .mockRejectedValueOnce(new Error("simulated database failure"));
+    const remove = jest.spyOn(
+      strapi.plugin("upload").service("upload"),
+      "remove"
+    );
+
+    let response;
+    let updates;
+    let removals;
+    try {
+      response = await upload(tinyPng, "portrait.png", "image/png");
+    } finally {
+      // read before mockRestore, which clears them
+      updates = [...updateMany.mock.calls];
+      removals = remove.mock.calls.map(([file]) => file);
+      updateMany.mockRestore();
+      remove.mockRestore();
+    }
+
+    expect(response.status).toBe(500);
+    // nothing that no account could ever attach: no row, no stored file
+    const ids = updates[0][0].where.id.$in;
+    expect(ids).toHaveLength(1);
+    expect(removals.map((file) => file.id)).toEqual(ids);
+    expect(await fileCount()).toBe(rowsBefore);
+    for (const file of removals) {
+      for (const stored of [file, ...Object.values(file.formats ?? {})]) {
+        expect(
+          fs.existsSync(path.join(strapi.dirs.static.public, stored.url))
+        ).toBe(false);
+      }
+    }
+  });
+
+  it("UI-03 - a refused upload records nothing", async () => {
+    const before = await strapi.db
+      .query(FILE_UID)
+      .count({ where: { uploaded_by: artist.user.id } });
+
+    await upload(svg, "logo.svg", "image/svg+xml").expect(400);
+
+    expect(
+      await strapi.db
+        .query(FILE_UID)
+        .count({ where: { uploaded_by: artist.user.id } })
+    ).toBe(before);
+  });
+
+  it("UI-03 - no public or artist route returns uploaded_by", async () => {
+    const main = await upload(tinyPng, "portrait.png", "image/png").expect(200);
+    const gallery = await upload(tinyPng, "galerie.png", "image/png").expect(
+      200
+    );
+    uploaded.push(...main.body, ...gallery.body);
+    await http()
+      .patch("/api/me-makeup")
+      .set("Authorization", `Bearer ${artist.jwt}`)
+      .send({
+        main_picture: main.body[0].id,
+        image_gallery: [gallery.body[0].id],
+      })
+      .expect(200);
+
+    const id = artist.profile.id;
+    const reads = [
+      "/api/makeup-artistes?populate=*",
+      "/api/makeup-artistes?populate[main_picture][populate]=*&populate[image_gallery][populate]=*",
+      "/api/makeup-artistes?filters[username][$eq]=uploader&populate=service_offers.options,network,language,image_gallery,courses,experiences,skills,main_picture",
+      `/api/makeup-artistes/${id}?populate=*`,
+      "/api/searching?search=Photo",
+    ];
+    for (const url of reads) {
+      const response = await http().get(url).expect(200);
+      expect(JSON.stringify(response.body)).toContain(main.body[0].url);
+      expect(findKeys(response.body, ["uploaded_by"])).toEqual([]);
+    }
+
+    const own = await http()
+      .get("/api/me-makeup")
+      .set("Authorization", `Bearer ${artist.jwt}`)
+      .expect(200);
+    expect(own.body.main_picture.id).toBe(main.body[0].id);
+    expect(findKeys(own.body, ["uploaded_by"])).toEqual([]);
+  });
+
+  it("UI-03 - a public filter or sort on uploaded_by is refused", async () => {
+    for (const url of [
+      `/api/makeup-artistes?filters[main_picture][uploaded_by][$eq]=${artist.user.id}`,
+      `/api/makeup-artistes?filters[image_gallery][uploaded_by][$null]=true`,
+      "/api/makeup-artistes?sort=main_picture.uploaded_by",
+      "/api/makeup-artistes?populate[main_picture][fields][0]=uploaded_by",
+    ]) {
+      const response = await http().get(url).expect(400);
+      expect(response.body.error.message).toBe("Invalid parameter uploaded_by");
+    }
   });
 });

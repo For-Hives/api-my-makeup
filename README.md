@@ -87,6 +87,50 @@ the admin's email templates. Registration and email confirmation are left
 as they are. `EMAIL_SETTINGS_SYNC=false` skips the sync, for an emergency
 change made from the admin.
 
+### Pictures of the artists
+
+Every file sent through `POST /api/upload` (the artist space) keeps the
+account that sent it in `uploaded_by`, a private column of the upload
+files table that no route returns. Files sent by the admin, and every file
+sent before this column existed, have it empty.
+
+- `PATCH /api/me-makeup` only takes, in `main_picture` and
+  `image_gallery`, files already on her profile or files she sent that
+  nothing uses yet; any other file id answers 400 `File not allowed` and
+  nothing is saved.
+- Once the profile is saved, a replaced or removed picture is deleted for
+  good (database row and R2 object), unless another entry uses it.
+- `DELETE /api/me-makeup` deletes her pictures and the files she sent,
+  after the profile and the account are deleted.
+- A file that could not be deleted (R2 unreachable) is left for the daily
+  sweep: a picture sent before `uploaded_by` existed gets her account in
+  it. The logs say `left for the next media sweep`, or
+  `[media] manual cleanup` for a file the sweep cannot take.
+- A daily task (04:00, Paris time) sweeps the files she sent and never put
+  on her profile: `uploaded_by` set, used by nothing, older than 24 h
+  (`src/utils/media-sweep.js`). `MEDIA_SWEEP` chooses what it does:
+
+  - `log` (default, and for any unknown value): logs the count and the ids
+    of these files, deletes nothing. Production starts there: read the
+    `[media-sweep]` lines of a few runs, then set `MEDIA_SWEEP=delete`;
+  - `delete`: deletes at most 50 of them per run and logs
+    `[media-sweep] removed N`;
+  - `off`: does nothing.
+
+  Files with an empty `uploaded_by` are never swept. `CRON_ENABLED=false`
+  turns off every scheduled task.
+
+- `MEDIA_REMOVAL=log` stops every deletion above (replaced pictures,
+  deleted accounts, sweep) without a redeploy, for instance if a front
+  change starts dropping pictures: the API logs
+  `[media] <reason>: MEDIA_REMOVAL=log, would remove N file(s): <ids>` and
+  keeps the files. Unset or `delete` deletes; any other value is `log`.
+  Back to `delete`, the files with `uploaded_by` set that are still unused
+  go to the next sweep: put back on her profile, from the admin, any that
+  should stay.
+- R2 has no backup and Cloudflare caches the public pictures for up to 4 h:
+  a deleted picture may still answer from the cache for a few hours.
+
 ### Docker Environment Variables
 
 | Variable                   | Description                                                                                          |
@@ -115,6 +159,9 @@ change made from the admin.
 | `EMAIL_SETTINGS_SYNC`      | `false` skips writing the email settings at start                                                    |
 | `DOCUMENTATION_ENABLED`    | `true` serves `/documentation` outside development                                                   |
 | `PERMISSIONS_SYNC`         | `false` skips applying `config/permissions.js` at start                                              |
+| `MEDIA_SWEEP`              | Daily sweep of unused artist uploads: `log` (default), `delete` or `off`                             |
+| `MEDIA_REMOVAL`            | `log` stops every picture deletion and only logs it; `delete` (default) deletes                      |
+| `CRON_ENABLED`             | `false` turns off the scheduled tasks (the media sweep)                                              |
 
 ## 🧪 Tests
 

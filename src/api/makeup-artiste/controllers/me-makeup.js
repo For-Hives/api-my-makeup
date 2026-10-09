@@ -4,6 +4,8 @@
  * A set of functions called "actions" for `init-makeup`
  */
 
+const { FILE_NOT_ALLOWED } = require("../services/me-makeup");
+
 module.exports = {
   async initMakeup(ctx, next) {
     try {
@@ -29,6 +31,13 @@ module.exports = {
 
       ctx.body = data;
     } catch (err) {
+      // a picture that is not hers: nothing was written
+      if (err.code === FILE_NOT_ALLOWED) {
+        return ctx.badRequest("File not allowed", {
+          moreDetails: err.message,
+          files: err.fileIds,
+        });
+      }
       console.log(err);
       ctx.badRequest("updating Makeup Artist error", {
         moreDetails: err.message,
@@ -61,5 +70,5 @@ module.exports = {
         moreDetails: err.message,
       });
     }
-  }
+  },
 };
