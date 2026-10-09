@@ -44,6 +44,11 @@
     "react-router-dom": "5.3.4",
     "styled-components": "5.3.11"
   },
+  "resolutions": {
+    "@casl/ability": "6.7.5",
+    "nodemailer": "10.0.10",
+    "sharp": "0.35.5"
+  },
   "author": {
     "name": "ForHive"
   },
