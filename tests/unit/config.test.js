@@ -3,6 +3,7 @@ const { describe, it, expect, afterEach } = require("@jest/globals");
 const { env } = require("@strapi/utils");
 const middlewares = require("../../config/middlewares");
 const plugins = require("../../config/plugins");
+const server = require("../../config/server");
 
 const saved = { ...process.env };
 
@@ -217,5 +218,23 @@ describe("config/plugins.js, email through Resend", () => {
       netConnect.mockRestore();
       tlsConnect.mockRestore();
     }
+  });
+});
+
+describe("config/server.js, scheduled tasks", () => {
+  it("runs the media sweep every day at 04:00, Paris time", () => {
+    delete process.env.CRON_ENABLED;
+    const { cron } = server({ env });
+    expect(cron.enabled).toBe(true);
+    expect(Object.keys(cron.tasks)).toEqual(["mediaSweep"]);
+    expect(cron.tasks.mediaSweep.options).toEqual({
+      rule: "0 4 * * *",
+      tz: "Europe/Paris",
+    });
+  });
+
+  it("CRON_ENABLED=false turns the scheduled tasks off", () => {
+    process.env.CRON_ENABLED = "false";
+    expect(server({ env }).cron.enabled).toBe(false);
   });
 });

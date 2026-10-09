@@ -87,6 +87,34 @@ the admin's email templates. Registration and email confirmation are left
 as they are. `EMAIL_SETTINGS_SYNC=false` skips the sync, for an emergency
 change made from the admin.
 
+### Pictures of the artists
+
+Every file sent through `POST /api/upload` (the artist space) keeps the
+account that sent it in `uploaded_by`, a private column of the upload
+files table that no route returns. Files sent by the admin, and every file
+sent before this column existed, have it empty.
+
+- `PATCH /api/me-makeup` only takes, in `main_picture` and
+  `image_gallery`, files already on her profile or files she sent that
+  nothing uses yet; any other file id answers 400 `File not allowed` and
+  nothing is saved.
+- Once the profile is saved, a replaced or removed picture is deleted for
+  good (database row and R2 object), unless another entry uses it.
+- `DELETE /api/me-makeup` deletes her pictures and the files she sent,
+  after the profile and the account are deleted.
+- A daily task (04:00, Paris time) sweeps the files she sent and never put
+  on her profile: `uploaded_by` set, used by nothing, older than 24 h
+  (`src/utils/media-sweep.js`). `MEDIA_SWEEP` chooses what it does:
+
+  - `delete` (default): deletes at most 50 of them per run and logs
+    `[media-sweep] removed N`;
+  - `log` (also for any unknown value): logs the count and the ids of these
+    files, deletes nothing;
+  - `off`: does nothing.
+
+  Files with an empty `uploaded_by` are never swept. `CRON_ENABLED=false`
+  turns off every scheduled task.
+
 ### Docker Environment Variables
 
 | Variable                   | Description                                                                                          |
@@ -115,6 +143,8 @@ change made from the admin.
 | `EMAIL_SETTINGS_SYNC`      | `false` skips writing the email settings at start                                                    |
 | `DOCUMENTATION_ENABLED`    | `true` serves `/documentation` outside development                                                   |
 | `PERMISSIONS_SYNC`         | `false` skips applying `config/permissions.js` at start                                              |
+| `MEDIA_SWEEP`              | Daily sweep of unused artist uploads: `delete` (default), `log` or `off`                             |
+| `CRON_ENABLED`             | `false` turns off the scheduled tasks (the media sweep)                                              |
 
 ## 🧪 Tests
 
