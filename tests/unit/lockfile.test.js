@@ -15,9 +15,14 @@ const lockfile = fs.readFileSync(
 // "@casl/ability@6.5.0" -> "@casl/ability"
 const nameOf = (pattern) => pattern.slice(0, pattern.lastIndexOf("@"));
 
+// ".../@casl/ability/-/ability-6.7.5.tgz#..." -> "@casl/ability" (also
+// catches an alias such as old-sharp@npm:sharp@0.32.6)
+const packageOf = (url) => new URL(url).pathname.split("/-/")[0].slice(1);
+
 // One entry per block: the requested patterns, then the resolved version
 //   sharp@0.32.6, sharp@0.35.5:
 //     version "0.35.5"
+//     resolved "https://registry.yarnpkg.com/sharp/-/sharp-0.35.5.tgz#..."
 const entries = lockfile
   .split(/\n\n+/)
   .filter((block) => /^\S.*:$/.test(block.split("\n")[0]))
@@ -28,8 +33,14 @@ const entries = lockfile
       .split(", ")
       .map((pattern) => pattern.replace(/^"|"$/g, ""));
     const version = block.match(/^ {2}version "([^"]+)"$/m);
+    const url = block.match(/^ {2}resolved "([^"]+)"$/m);
     return {
-      names: [...new Set(patterns.map(nameOf))],
+      names: [
+        ...new Set([
+          ...patterns.map(nameOf),
+          ...(url ? [packageOf(url[1])] : []),
+        ]),
+      ],
       version: version && version[1],
     };
   });
@@ -56,6 +67,11 @@ describe("yarn.lock", () => {
   it("is read entry by entry", () => {
     expect(entries.length).toBeGreaterThan(1000);
     expect(entries.every((entry) => entry.version)).toBe(true);
+    expect(
+      packageOf(
+        "https://registry.yarnpkg.com/@casl/ability/-/ability-6.7.5.tgz#9468"
+      )
+    ).toBe("@casl/ability");
   });
 
   it.each([
