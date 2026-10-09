@@ -1,10 +1,14 @@
 // S13: POST /api/upload takes JPEG, PNG and WebP pictures up to 10 MB, read
 // from their content, and nothing else: no SVG, AVIF, HEIC, PDF or video,
 // no replacing an existing file, no attaching the file to an entry.
+// Accepted pictures go through sharp (NT-SHARP-API): the stored size is the
+// picture's, and the only generated format is a thumbnail of the same type.
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const sharp = require("sharp");
 const { setupStrapi, stopStrapi } = require("../helpers/strapi");
 const { http, createAccount } = require("../helpers/fixtures");
+const { atLeast } = require("../helpers/versions");
+const { sniffImageType } = require("../../src/utils/upload-rules");
 
 const FILE_UID = "plugin::upload.file";
 
@@ -30,12 +34,16 @@ const isoMedia = (brand) =>
   ]);
 const pdf = Buffer.from("%PDF-1.4\n%fictional\n");
 
+// Strapi 4.26.2 only makes a thumbnail of a picture larger than 245 x 156
+const THUMBNAIL = { width: 245, height: 156 };
+
 describe("POST /api/upload", () => {
   let artist;
   let other;
   let jpeg;
   let png;
   let webp;
+  let tinyPng;
   let avif;
   const uploaded = [];
 
@@ -52,9 +60,19 @@ describe("POST /api/upload", () => {
     artist = await createAccount("uploader", { first_name: "Photo" });
     other = await createAccount("victim", { first_name: "Victime" });
 
+    // Production settings: no large, medium or small format (48 of the 49
+    // pictures in production only have a thumbnail)
+    const upload = strapi.plugin("upload").service("upload");
+    await upload.setSettings({
+      ...(await upload.getSettings()),
+      responsiveDimensions: false,
+    });
+
     jpeg = await noise(1400, 1400).jpeg({ quality: 95 }).toBuffer();
-    png = await noise(40, 40).png().toBuffer();
-    webp = await noise(40, 40).webp().toBuffer();
+    png = await noise(1400, 1050).png().toBuffer();
+    // what the artist space sends: WebP, at most 2000 px
+    webp = await noise(2000, 1500).webp().toBuffer();
+    tinyPng = await noise(40, 40).png().toBuffer();
     avif = await noise(40, 40).avif().toBuffer();
   }, 60000);
 
@@ -64,6 +82,41 @@ describe("POST /api/upload", () => {
       await service.remove(await service.findOne(file.id));
     }
     await stopStrapi();
+  });
+
+  // The stored picture keeps its size, and its only format is a thumbnail
+  // of the same type that sharp really wrote
+  const expectSharpOutput = async (file, { mime, ext, width, height }) => {
+    expect(file.mime).toBe(mime);
+    expect(file.ext).toBe(ext);
+    expect(file.width).toBe(width);
+    expect(file.height).toBe(height);
+
+    expect(Object.keys(file.formats)).toEqual(["thumbnail"]);
+    const { thumbnail } = file.formats;
+    expect(thumbnail.mime).toBe(mime);
+    expect(thumbnail.ext).toBe(ext);
+    expect(thumbnail.width).toBeLessThanOrEqual(THUMBNAIL.width);
+    expect(thumbnail.height).toBeLessThanOrEqual(THUMBNAIL.height);
+    // fit inside: one side fills the box
+    expect(
+      thumbnail.width === THUMBNAIL.width ||
+        thumbnail.height === THUMBNAIL.height
+    ).toBe(true);
+
+    const { body } = await http().get(thumbnail.url).expect(200);
+    expect(Buffer.isBuffer(body)).toBe(true);
+    expect(sniffImageType(body.subarray(0, 12))).toBe(mime);
+    const metadata = await sharp(body).metadata();
+    expect([metadata.width, metadata.height]).toEqual([
+      thumbnail.width,
+      thumbnail.height,
+    ]);
+  };
+
+  it("S13 - runs sharp 0.35.5 or later", () => {
+    // sharp 0.35 exports no package.json: read the version it reports
+    expect(atLeast(sharp.versions.sharp, "0.35.5")).toBe(true);
   });
 
   it("S13 - accepts a 2 MB JPEG", async () => {
@@ -76,22 +129,30 @@ describe("POST /api/upload", () => {
     uploaded.push(...response.body);
 
     expect(response.body).toHaveLength(1);
-    expect(response.body[0].mime).toBe("image/jpeg");
     expect(response.body[0].url).toMatch(/^\/uploads\/.+\.jpg$/);
+    await expectSharpOutput(response.body[0], {
+      mime: "image/jpeg",
+      ext: ".jpg",
+      width: 1400,
+      height: 1400,
+    });
   });
 
   it.each([
-    ["PNG", () => png, "portrait.png", "image/png"],
-    ["WebP", () => webp, "portrait.webp", "image/webp"],
-  ])("S13 - accepts a %s", async (_label, buffer, filename, type) => {
-    const response = await upload(buffer(), filename, type).expect(200);
-    uploaded.push(...response.body);
+    ["PNG", () => png, "portrait.png", "image/png", ".png", [1400, 1050]],
+    ["WebP", () => webp, "portrait.webp", "image/webp", ".webp", [2000, 1500]],
+  ])(
+    "S13 - accepts a %s",
+    async (_label, buffer, filename, mime, ext, [width, height]) => {
+      const response = await upload(buffer(), filename, mime).expect(200);
+      uploaded.push(...response.body);
 
-    expect(response.body[0].mime).toBe(type);
-  });
+      await expectSharpOutput(response.body[0], { mime, ext, width, height });
+    }
+  );
 
   it("S13 - stores the type read from the content, not the declared one", async () => {
-    const response = await upload(png, "portrait.jpg", "image/jpeg").expect(
+    const response = await upload(tinyPng, "portrait.jpg", "image/jpeg").expect(
       200
     );
     uploaded.push(...response.body);
@@ -101,7 +162,9 @@ describe("POST /api/upload", () => {
   });
 
   it("S13 - stores a picture named .html with the extension of its content", async () => {
-    const response = await upload(png, "page.html", "image/png").expect(200);
+    const response = await upload(tinyPng, "page.html", "image/png").expect(
+      200
+    );
     uploaded.push(...response.body);
 
     expect(response.body[0].mime).toBe("image/png");
@@ -150,7 +213,7 @@ describe("POST /api/upload", () => {
     await http()
       .post(`/api/upload?id=${target.id}`)
       .set("Authorization", `Bearer ${artist.jwt}`)
-      .attach("files", png, { filename: "x.png", contentType: "image/png" })
+      .attach("files", tinyPng, { filename: "x.png", contentType: "image/png" })
       .expect(403);
     await http()
       .post(`/api/upload?id=${target.id}`)
@@ -174,7 +237,7 @@ describe("POST /api/upload", () => {
       .field("ref", "api::makeup-artiste.makeup-artiste")
       .field("refId", String(other.profile.id))
       .field("field", "main_picture")
-      .attach("files", png, { filename: "x.png", contentType: "image/png" })
+      .attach("files", tinyPng, { filename: "x.png", contentType: "image/png" })
       .expect(400);
 
     expect(await fileCount()).toBe(before);
@@ -183,7 +246,7 @@ describe("POST /api/upload", () => {
   it("refuses visitors without an account", async () => {
     await http()
       .post("/api/upload")
-      .attach("files", png, { filename: "x.png", contentType: "image/png" })
+      .attach("files", tinyPng, { filename: "x.png", contentType: "image/png" })
       .expect(403);
   });
 });
