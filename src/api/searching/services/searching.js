@@ -86,6 +86,7 @@ const PROFILE_POPULATE = {
   service_offers: {
     populate: "*",
   },
+  // public links only: the email and phone are neither searched nor returned
   network: {
     populate: "*",
   },
@@ -127,16 +128,6 @@ const balancedKeys = [
     name: "skills_name",
     weight: 0.9,
     getFn: (makeupArtiste) => makeupArtiste.skills?.map((skill) => skill.name),
-  },
-  {
-    name: "network_phone",
-    weight: 0.8,
-    getFn: (makeupArtiste) => makeupArtiste.network?.phone,
-  },
-  {
-    name: "network_email",
-    weight: 0.8,
-    getFn: (makeupArtiste) => makeupArtiste.network?.email,
   },
   {
     name: "last_name",
@@ -295,36 +286,6 @@ module.exports = {
         serviceOffersDescriptionParams
       );
 
-      // find the makeup artiste with best social network match
-
-      const networkPhoneKey = balancedKeys.find(
-        (key) => key.name === "network_phone"
-      );
-
-      const networkPhoneParams = {
-        network_phone: params.search ?? "",
-      };
-
-      const networkPhoneResultIDs = findIdByKey(
-        allMakeupArtiste,
-        networkPhoneKey,
-        networkPhoneParams
-      );
-
-      const networkEmailKey = balancedKeys.find(
-        (key) => key.name === "network_email"
-      );
-
-      const networkEmailParams = {
-        network_email: params.search ?? "",
-      };
-
-      const networkEmailResultIDs = findIdByKey(
-        allMakeupArtiste,
-        networkEmailKey,
-        networkEmailParams
-      );
-
       // find the makeup artiste with best last name match
 
       const lastNameKey = balancedKeys.find((key) => key.name === "last_name");
@@ -356,6 +317,22 @@ module.exports = {
       );
 
       // add up the score of each makeup artiste given by each search
+
+      const keyResultIDs = [
+        cityResultIDs,
+        specialityResultIDs,
+        skillsNameResultIDs,
+        skillsDescriptionResultIDs,
+        descriptionResultIDs,
+        serviceOffersDescriptionResultIDs,
+        lastNameResultIDs,
+        firstNameResultIDs,
+      ];
+      // a profile no key matched is no result: an unknown term returns
+      // nothing (UI-07)
+      const matchedIDs = new Set(
+        keyResultIDs.flatMap((resultIDs) => Object.keys(resultIDs))
+      );
 
       const scoreTotalByID = {};
 
@@ -406,20 +383,6 @@ module.exports = {
           ).weight;
         }
 
-        if (networkPhoneResultIDs[key] === undefined) {
-          scoreTotalByID[key] = scoreTotalByID[key] ?? 0;
-          scoreTotalByID[key] += balancedKeys.find(
-            (key) => key.name === "network_phone"
-          ).weight;
-        }
-
-        if (networkEmailResultIDs[key] === undefined) {
-          scoreTotalByID[key] = scoreTotalByID[key] ?? 0;
-          scoreTotalByID[key] += balancedKeys.find(
-            (key) => key.name === "network_email"
-          ).weight;
-        }
-
         if (lastNameResultIDs[key] === undefined) {
           scoreTotalByID[key] = scoreTotalByID[key] ?? 0;
           scoreTotalByID[key] += balancedKeys.find(
@@ -465,16 +428,6 @@ module.exports = {
         scoreTotalByID[key] += serviceOffersDescriptionResultIDs[key];
       }
 
-      for (let key in networkPhoneResultIDs) {
-        scoreTotalByID[key] = scoreTotalByID[key] ?? 0;
-        scoreTotalByID[key] += networkPhoneResultIDs[key];
-      }
-
-      for (let key in networkEmailResultIDs) {
-        scoreTotalByID[key] = scoreTotalByID[key] ?? 0;
-        scoreTotalByID[key] += networkEmailResultIDs[key];
-      }
-
       for (let key in lastNameResultIDs) {
         scoreTotalByID[key] = scoreTotalByID[key] ?? 0;
         scoreTotalByID[key] += lastNameResultIDs[key];
@@ -490,6 +443,9 @@ module.exports = {
       const makeupArtisteWithScore = [];
 
       for (let key in scoreTotalByID) {
+        if (!matchedIDs.has(key)) {
+          continue;
+        }
         makeupArtisteWithScore.push({
           ...allMakeupArtiste.find(
             (makeupArtiste) => String(makeupArtiste.id) === key
@@ -501,7 +457,6 @@ module.exports = {
       // return the makeup artiste sorted by score
       let res = makeupArtisteWithScore
         .sort((a, b) => a.search_score - b.search_score)
-        .filter((makeupArtiste) => makeupArtiste.search_score <= 12)
         .slice(0, 100);
 
       return res;
@@ -515,8 +470,12 @@ module.exports = {
 function findIdByKey(allMakeupArtiste, key, params) {
   const keyFuse = new Fuse(allMakeupArtiste, {
     keys: [key],
-    threshold: 0.65, // Increase the threshold value
-    distance: 100, // Increase the distance value
+    // A real match (UI-07): one typo per 5 letters (« Anecy » finds
+    // Annecy), none in a shorter term. At 0.65 « blah » found 42 of the 95
+    // profiles; at 0.4, with ignoreLocation, « test » still found 34.
+    threshold: 0.2,
+    // A word deep in a long description matches as well as at its start
+    ignoreLocation: true,
     includeScore: true,
     findAllMatches: true,
     ignoreFieldNorm: true,

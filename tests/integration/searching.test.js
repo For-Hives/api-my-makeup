@@ -1,7 +1,8 @@
 // S09: GET /api/searching answers without a term, returns 50 profiles at
 // most, counts available=null as available, carries no contact details,
-// account or internal score, and brakes at 60 requests per minute per
-// client address.
+// account or internal score, finds nothing for an unknown term nor for an
+// email or phone (UI-07), and brakes at 60 requests per minute per client
+// address.
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const { setupStrapi, stopStrapi } = require("../helpers/strapi");
 const { http, createAccount, findKeys } = require("../helpers/fixtures");
@@ -50,6 +51,12 @@ describe("GET /api/searching", () => {
     await createProfile("chamonix-off", {
       city: "Chamonix",
       available: false,
+    });
+    // a placeholder skill: « zzqq » found it at threshold 0.65
+    await createProfile("placeholder", {
+      city: "Grenoble",
+      available: true,
+      skills: [{ name: "zzz" }],
     });
     // a profile with its account, which must never come out
     await createAccount("compte", {
@@ -112,6 +119,33 @@ describe("GET /api/searching", () => {
     expect(first).toHaveProperty("skills");
     expectPublicOnly(response.body);
   });
+
+  it.each(["zzqq", "blah", "xqzvwk"])(
+    "S09 - an unknown term (%s) finds nothing",
+    async (term) => {
+      const response = await search(newClient(), { search: term }).expect(200);
+
+      expect(response.body).toEqual([]);
+    }
+  );
+
+  it("S09 - a word typed with its city still finds the profile there", async () => {
+    const response = await search(newClient(), {
+      search: "Annecy",
+      city: "Annecy",
+    }).expect(200);
+
+    expect(response.body.map((result) => result.username)).toEqual(["compte"]);
+  });
+
+  it.each(["compte@example.test", "dispo-1@example.test", "0611111111"])(
+    "S09 - the email or phone of a profile (%s) finds nothing",
+    async (term) => {
+      const response = await search(newClient(), { search: term }).expect(200);
+
+      expect(response.body).toEqual([]);
+    }
+  );
 
   it("S09 - available=null is searchable, available=false is not", async () => {
     const response = await search(newClient(), {
