@@ -7,6 +7,10 @@
  *
  * Refusals are answered, not thrown: strapi::body then deletes the
  * temporary files of the request.
+ *
+ * Accepted files get the account that sent them in uploaded_by, the column
+ * that lets her put them on her profile and lets the media sweep remove
+ * them if she never does (src/utils/media-sweep.js).
  */
 
 const fs = require("fs/promises");
@@ -15,6 +19,11 @@ const {
   checkUploadRequest,
   withTypeExtension,
 } = require("../utils/upload-rules");
+const {
+  FILE_UID,
+  removeUnusedFiles,
+  uniqueIds,
+} = require("../utils/media-files");
 
 const readHead = async (filePath) => {
   const handle = await fs.open(filePath, "r");
@@ -23,6 +32,35 @@ const readHead = async (filePath) => {
     return buffer.subarray(0, bytesRead);
   } finally {
     await handle.close();
+  }
+};
+
+/**
+ * Writes uploaded_by on the files the upload route just created. If that
+ * fails, the files are removed (nobody could ever attach them) and the
+ * request fails.
+ */
+const recordUploader = async (ctx) => {
+  const userId = ctx.state.user?.id;
+  const ids = uniqueIds([].concat(ctx.body ?? []).map((file) => file?.id));
+
+  if (!userId || ids.length === 0) {
+    return;
+  }
+
+  try {
+    await strapi.db.query(FILE_UID).updateMany({
+      where: { id: { $in: ids } },
+      data: { uploaded_by: userId },
+    });
+  } catch (error) {
+    strapi.log.error(
+      `[upload] could not record the uploader of files ${ids.join(", ")}: ${
+        error.message
+      }`
+    );
+    await removeUnusedFiles(strapi, ids, "upload without uploader");
+    throw error;
   }
 };
 
@@ -65,5 +103,9 @@ module.exports = () => async (ctx, next) => {
     file.name = withTypeExtension(file.name, result.type);
   }
 
-  return next();
+  await next();
+
+  if (ctx.status >= 200 && ctx.status < 300) {
+    await recordUploader(ctx);
+  }
 };

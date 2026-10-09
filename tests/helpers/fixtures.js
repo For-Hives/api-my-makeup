@@ -1,6 +1,7 @@
 // Fictional accounts and profiles for the integration tests (example.test
 // addresses only, never real data).
 const request = require("supertest");
+const sharp = require("sharp");
 
 const http = () => request(strapi.server.httpServer);
 
@@ -37,6 +38,39 @@ const createAccount = async (username, profileData) => {
 };
 
 /**
+ * A small PNG picture, a different one for each seed.
+ */
+const picture = (seed = 0) =>
+  sharp({
+    create: {
+      width: 8,
+      height: 8,
+      channels: 3,
+      background: { r: seed % 256, g: 128, b: 64 },
+    },
+  })
+    .png()
+    .toBuffer();
+
+/**
+ * Sends a picture through POST /api/upload as the account of `jwt`, like
+ * the artist space (local provider in the test environment, never R2), and
+ * returns the stored file as the route answers it.
+ */
+const uploadPicture = async (jwt, buffer) => {
+  const response = await http()
+    .post("/api/upload")
+    .set("Authorization", `Bearer ${jwt}`)
+    .attach("files", buffer ?? (await picture()), {
+      filename: "photo.png",
+      contentType: "image/png",
+    })
+    .expect(200);
+
+  return response.body[0];
+};
+
+/**
  * Walks a JSON value and returns the paths of the keys named in `keys`.
  */
 const findKeys = (value, keys, path = "$", found = []) => {
@@ -55,4 +89,11 @@ const findKeys = (value, keys, path = "$", found = []) => {
   return found;
 };
 
-module.exports = { http, findRole, createAccount, findKeys };
+module.exports = {
+  http,
+  findRole,
+  createAccount,
+  findKeys,
+  picture,
+  uploadPicture,
+};

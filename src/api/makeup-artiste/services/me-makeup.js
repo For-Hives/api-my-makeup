@@ -5,8 +5,11 @@
  */
 
 const _ = require("lodash");
+const { hideUploader } = require("../../../utils/media-files");
 
 const PROFILE_UID = "api::makeup-artiste.makeup-artiste";
+
+const MEDIA_FIELDS = ["main_picture", "image_gallery"];
 
 // Fields an artist may change on her profile. Anything else in the PATCH
 // body (pro, score, username, user, timestamps...) is ignored.
@@ -73,7 +76,7 @@ module.exports = {
     return strapi.entityService.create("api::makeup-artiste.makeup-artiste", {
       data: {
         user: {
-          connect: [{id: user.id}],
+          connect: [{ id: user.id }],
         },
         speciality: "",
         city: "",
@@ -118,7 +121,7 @@ module.exports = {
 
     // Same shape as populate: "*" without createdBy/updatedBy, which
     // returned the admin users (email, bcrypt hash, resetPasswordToken).
-    return strapi.entityService.findOne(
+    const profile = await strapi.entityService.findOne(
       "api::makeup-artiste.makeup-artiste",
       updated.id,
       {
@@ -135,6 +138,8 @@ module.exports = {
         },
       }
     );
+
+    return hideUploader(profile, MEDIA_FIELDS);
   },
   meMakeupArtist: async (user) => {
     if (!user) {
@@ -188,7 +193,7 @@ module.exports = {
     }
 
     // return the makeup artist linked to user
-    return existing[0];
+    return hideUploader(existing[0], MEDIA_FIELDS);
   },
 
   deleteMakeupArtist: async (user) => {
