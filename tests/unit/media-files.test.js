@@ -1,6 +1,11 @@
-// UI-03: which stored object the upload plugin deletes with a file
-const { describe, it, expect } = require("@jest/globals");
-const { mediaIds, storageFile } = require("../../src/utils/media-files");
+// UI-03: which stored object the upload plugin deletes with a file, and how
+// long an answer waits for a removal
+const { describe, it, expect, afterEach } = require("@jest/globals");
+const {
+  mediaIds,
+  storageFile,
+  waitAtMost,
+} = require("../../src/utils/media-files");
 
 const R2 = {
   provider: "strapi-provider-cloudflare-r2",
@@ -107,5 +112,43 @@ describe("mediaIds", () => {
     expect(
       mediaIds({ id: 3 }, [{ id: 4 }, { id: 3 }], null, undefined, [])
     ).toEqual([3, 4]);
+  });
+});
+
+describe("waitAtMost", () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("stops waiting at the delay, for a removal that never ends", async () => {
+    jest.useFakeTimers();
+    let done = false;
+    const waiting = waitAtMost(new Promise(() => {}), 5000).then(() => {
+      done = true;
+    });
+
+    await jest.advanceTimersByTimeAsync(4999);
+    expect(done).toBe(false);
+    await jest.advanceTimersByTimeAsync(1);
+    expect(done).toBe(true);
+    await waiting;
+  });
+
+  it("returns as soon as a fast removal ends, and leaves no timer", async () => {
+    jest.useFakeTimers();
+    let done = false;
+    const removal = new Promise((resolve) => {
+      setTimeout(resolve, 300);
+    });
+    const waiting = waitAtMost(removal, 5000).then(() => {
+      done = true;
+    });
+
+    await jest.advanceTimersByTimeAsync(299);
+    expect(done).toBe(false);
+    await jest.advanceTimersByTimeAsync(1);
+    expect(done).toBe(true);
+    await waiting;
+    expect(jest.getTimerCount()).toBe(0);
   });
 });

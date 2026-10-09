@@ -5,6 +5,7 @@
 // picture's, and the only generated format is a thumbnail of the same type.
 // UI-03: the file keeps the account that sent it in the private uploaded_by
 // column, which no route ever returns.
+const fs = require("fs");
 const path = require("path");
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const sharp = require("sharp");
@@ -269,6 +270,44 @@ describe("POST /api/upload", () => {
       .query(FILE_UID)
       .findOne({ where: { id: response.body[0].id } });
     expect(row.uploaded_by).toBe(artist.user.id);
+  });
+
+  it("UI-03 - when uploaded_by cannot be written, the new files are removed and the upload fails", async () => {
+    const rowsBefore = await fileCount();
+    const updateMany = jest
+      .spyOn(strapi.db.query(FILE_UID), "updateMany")
+      .mockRejectedValueOnce(new Error("simulated database failure"));
+    const remove = jest.spyOn(
+      strapi.plugin("upload").service("upload"),
+      "remove"
+    );
+
+    let response;
+    let updates;
+    let removals;
+    try {
+      response = await upload(tinyPng, "portrait.png", "image/png");
+    } finally {
+      // read before mockRestore, which clears them
+      updates = [...updateMany.mock.calls];
+      removals = remove.mock.calls.map(([file]) => file);
+      updateMany.mockRestore();
+      remove.mockRestore();
+    }
+
+    expect(response.status).toBe(500);
+    // nothing that no account could ever attach: no row, no stored file
+    const ids = updates[0][0].where.id.$in;
+    expect(ids).toHaveLength(1);
+    expect(removals.map((file) => file.id)).toEqual(ids);
+    expect(await fileCount()).toBe(rowsBefore);
+    for (const file of removals) {
+      for (const stored of [file, ...Object.values(file.formats ?? {})]) {
+        expect(
+          fs.existsSync(path.join(strapi.dirs.static.public, stored.url))
+        ).toBe(false);
+      }
+    }
   });
 
   it("UI-03 - a refused upload records nothing", async () => {

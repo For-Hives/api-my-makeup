@@ -708,6 +708,64 @@ describe("/api/me-makeup", () => {
       await expectKept(after);
     });
 
+    it("UI-03 - a removal of 300 ms is over when the PATCH answers", async () => {
+      const artist = await createAccount("pictures-wait", {
+        first_name: "Photo",
+      });
+      const before = await upload(artist);
+      await as(artist, "patch", { main_picture: before.id }).expect(200);
+      const after = await upload(artist);
+
+      const service = strapi.plugin("upload").service("upload");
+      const realRemove = service.remove;
+      service.remove = async (...args) => {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return realRemove.apply(service, args);
+      };
+      try {
+        await as(artist, "patch", { main_picture: after.id }).expect(200);
+      } finally {
+        service.remove = realRemove;
+      }
+
+      await expectRemoved(before);
+    });
+
+    it("UI-03 - a removal slower than 5 s ends after the PATCH answer", async () => {
+      const artist = await createAccount("pictures-slow", {
+        first_name: "Photo",
+      });
+      const before = await upload(artist);
+      await as(artist, "patch", { main_picture: before.id }).expect(200);
+      const after = await upload(artist);
+
+      const service = strapi.plugin("upload").service("upload");
+      const realRemove = service.remove;
+      service.remove = async (...args) => {
+        await new Promise((resolve) => setTimeout(resolve, 7000));
+        return realRemove.apply(service, args);
+      };
+      let elapsed;
+      try {
+        const started = Date.now();
+        await as(artist, "patch", { main_picture: after.id }).expect(200);
+        elapsed = Date.now() - started;
+      } finally {
+        service.remove = realRemove;
+      }
+
+      // answered after the 5 s cap, before the removal ended
+      expect(elapsed).toBeGreaterThanOrEqual(4900);
+      expect(elapsed).toBeLessThan(7000);
+      expect(await fileRow(before)).not.toBeNull();
+      // then the removal finishes on its own
+      const deadline = Date.now() + 10000;
+      while ((await fileRow(before)) !== null && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+      await expectRemoved(before);
+    }, 30000);
+
     it("S07 - DELETE removes her main picture, her gallery and her unattached uploads", async () => {
       const leaving = await createAccount("pictures-leaving", {
         first_name: "Depart",
@@ -825,6 +883,20 @@ describe("/api/me-makeup", () => {
       for (const file of [main, loose, legacy]) {
         await expectRemoved(file);
       }
+    });
+
+    it("S07 - DELETE of an account without a profile removes her unattached uploads", async () => {
+      const lonely = await createAccount("pictures-no-profile");
+      const loose = await upload(lonely);
+      const others = await upload(owner);
+
+      await as(lonely, "delete").expect(200);
+
+      expect(
+        await strapi.query(USER_UID).findOne({ where: { id: lonely.user.id } })
+      ).toBeNull();
+      await expectRemoved(loose);
+      await expectKept(others);
     });
   });
 });
