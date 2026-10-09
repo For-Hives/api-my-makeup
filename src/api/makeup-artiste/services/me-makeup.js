@@ -279,7 +279,9 @@ module.exports = {
       existing[0].image_gallery
     ).filter((id) => !kept.has(id));
     await waitAtMost(
-      removeUnusedFiles(strapi, dropped, "replaced picture"),
+      removeUnusedFiles(strapi, dropped, "replaced picture", {
+        ownerId: user.id,
+      }),
       REMOVAL_WAIT_MS
     );
 
@@ -394,7 +396,9 @@ module.exports = {
     });
 
     await waitAtMost(
-      removeUnusedFiles(strapi, fileIds, "deleted account"),
+      removeUnusedFiles(strapi, fileIds, "deleted account", {
+        ownerId: user.id,
+      }),
       REMOVAL_WAIT_MS
     );
 

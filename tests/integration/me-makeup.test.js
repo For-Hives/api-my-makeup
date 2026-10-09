@@ -13,11 +13,13 @@ const {
   picture,
   uploadPicture,
 } = require("../helpers/fixtures");
+const { sweepOrphanMedia } = require("../../src/utils/media-sweep");
 
 const PROFILE_UID = "api::makeup-artiste.makeup-artiste";
 const USER_UID = "plugin::users-permissions.user";
 const FILE_UID = "plugin::upload.file";
 const ARTICLE_UID = "api::article.article";
+const DAY = 24 * 60 * 60 * 1000;
 
 const SECRET_KEYS = ["password", "resetPasswordToken", "confirmationToken"];
 
@@ -323,6 +325,29 @@ describe("/api/me-makeup", () => {
           galery: files.map((file) => file.id),
         },
       });
+
+    // what a picture sent before uploaded_by existed looks like
+    const makeLegacy = (file) =>
+      strapi.query(FILE_UID).update({
+        where: { id: file.id },
+        data: { uploaded_by: null },
+      });
+    const age = (file, milliseconds) =>
+      strapi.query(FILE_UID).update({
+        where: { id: file.id },
+        data: { createdAt: new Date(Date.now() - milliseconds) },
+      });
+    // the upload plugin's removal fails (R2 unreachable) during `run`
+    const withFailingRemoval = async (run) => {
+      const remove = jest
+        .spyOn(strapi.plugin("upload").service("upload"), "remove")
+        .mockRejectedValue(new Error("simulated storage failure"));
+      try {
+        return await run();
+      } finally {
+        remove.mockRestore();
+      }
+    };
 
     it("UI-03 - PATCH attaches her own uploads and never returns uploaded_by", async () => {
       const artist = await createAccount("pictures-own", {
@@ -648,6 +673,39 @@ describe("/api/me-makeup", () => {
       expect((await storedMedia(artist)).main).toBe(after.id);
       // left for the sweep: uploaded_by set, used by nothing
       await expectKept(before);
+      expect((await fileRow(before)).uploaded_by).toBe(artist.user.id);
+    });
+
+    it("UI-03 - a picture sent before uploaded_by that cannot be removed is left for the sweep", async () => {
+      const artist = await createAccount("pictures-legacy-fails", {
+        first_name: "Photo",
+      });
+      const legacy = await upload(artist);
+      await makeLegacy(legacy);
+      await age(legacy, 30 * DAY);
+      await strapi.entityService.update(PROFILE_UID, artist.profile.id, {
+        data: { main_picture: legacy.id },
+      });
+      const after = await upload(artist);
+      const warn = jest.spyOn(strapi.log, "warn");
+
+      try {
+        await withFailingRemoval(() =>
+          as(artist, "patch", { main_picture: after.id }).expect(200)
+        );
+        expect(warn).toHaveBeenCalledWith(
+          `[media] replaced picture: left for the next media sweep: ${legacy.id}`
+        );
+      } finally {
+        warn.mockRestore();
+      }
+
+      // hers now, so the next sweep removes it
+      expect((await fileRow(legacy)).uploaded_by).toBe(artist.user.id);
+      const { removed } = await sweepOrphanMedia(strapi, { mode: "delete" });
+      expect(removed).toContain(legacy.id);
+      await expectRemoved(legacy);
+      await expectKept(after);
     });
 
     it("S07 - DELETE removes her main picture, her gallery and her unattached uploads", async () => {
@@ -730,6 +788,42 @@ describe("/api/me-makeup", () => {
       });
       for (const file of [main, first, second]) {
         await expectKept(file);
+      }
+    });
+
+    it("S07 - DELETE answers 200 when her files cannot be removed, and leaves them for the sweep", async () => {
+      const leaving = await createAccount("pictures-leaving-fails", {
+        first_name: "Depart",
+      });
+      const main = await upload(leaving);
+      const loose = await upload(leaving);
+      const legacy = await upload(leaving);
+      await makeLegacy(legacy);
+      await strapi.entityService.update(PROFILE_UID, leaving.profile.id, {
+        data: { main_picture: main.id, image_gallery: [legacy.id] },
+      });
+
+      const response = await withFailingRemoval(() =>
+        as(leaving, "delete").expect(200)
+      );
+
+      expect(response.body).toEqual({ message: "User deleted" });
+      expect(
+        await strapi.query(USER_UID).findOne({ where: { id: leaving.user.id } })
+      ).toBeNull();
+      for (const file of [main, loose, legacy]) {
+        await expectKept(file);
+        expect((await fileRow(file)).uploaded_by).toBe(leaving.user.id);
+        await age(file, 2 * DAY);
+      }
+
+      // the next sweep removes them
+      const { removed } = await sweepOrphanMedia(strapi, { mode: "delete" });
+      expect(removed).toEqual(
+        expect.arrayContaining([main.id, loose.id, legacy.id])
+      );
+      for (const file of [main, loose, legacy]) {
+        await expectRemoved(file);
       }
     });
   });

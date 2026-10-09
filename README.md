@@ -102,6 +102,10 @@ sent before this column existed, have it empty.
   good (database row and R2 object), unless another entry uses it.
 - `DELETE /api/me-makeup` deletes her pictures and the files she sent,
   after the profile and the account are deleted.
+- A file that could not be deleted (R2 unreachable) is left for the daily
+  sweep: a picture sent before `uploaded_by` existed gets her account in
+  it. The logs say `left for the next media sweep`, or
+  `[media] manual cleanup` for a file the sweep cannot take.
 - A daily task (04:00, Paris time) sweeps the files she sent and never put
   on her profile: `uploaded_by` set, used by nothing, older than 24 h
   (`src/utils/media-sweep.js`). `MEDIA_SWEEP` chooses what it does:

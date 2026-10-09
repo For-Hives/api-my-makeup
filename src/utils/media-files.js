@@ -109,17 +109,67 @@ const storageFile = (file, { provider, providerOptions } = {}) => {
 };
 
 /**
+ * Files that could not be removed: the media sweep retries those with
+ * uploaded_by set. A file sent before that column (uploaded_by null) gets
+ * `ownerId` when given, the artist whose picture it was; any file still
+ * without one is logged for a manual cleanup. Never throws.
+ *
+ * @param {object} strapi
+ * @param {number[]} ids
+ * @param {string} reason
+ * @param {number} [ownerId]
+ */
+const leaveForSweep = async (strapi, ids, reason, ownerId) => {
+  try {
+    if (ownerId) {
+      await strapi.db.query(FILE_UID).updateMany({
+        where: { id: { $in: ids }, uploaded_by: { $null: true } },
+        data: { uploaded_by: ownerId },
+      });
+    }
+    const untracked = await strapi.db.query(FILE_UID).findMany({
+      select: ["id"],
+      where: { id: { $in: ids }, uploaded_by: { $null: true } },
+    });
+    const manual = untracked.map((row) => Number(row.id));
+    const swept = ids.filter((id) => !manual.includes(id));
+
+    if (swept.length > 0) {
+      strapi.log.warn(
+        `[media] ${reason}: left for the next media sweep: ${swept.join(", ")}`
+      );
+    }
+    if (manual.length > 0) {
+      strapi.log.error(
+        `[media] manual cleanup: ${reason}: the media sweep skips files ${manual.join(
+          ", "
+        )} (no uploaded_by)`
+      );
+    }
+  } catch (error) {
+    strapi.log.error(
+      `[media] manual cleanup: ${reason}: files ${ids.join(", ")}: ${
+        error.message
+      }`
+    );
+  }
+};
+
+/**
  * Removes the files that nothing uses any more, with their stored objects
  * (R2 in production), through the upload plugin. A file still used by an
  * entry is kept. A failure is logged with the file id and never thrown:
- * callers run after their own change succeeded.
+ * callers run after their own change succeeded. A file that could not be
+ * removed is left for the media sweep (see leaveForSweep).
  *
  * @param {object} strapi
  * @param {number[]} ids
  * @param {string} reason - Short label for the logs
+ * @param {{ ownerId?: number }} [options] - ownerId: the artist whose
+ *   pictures these were, given to a failed file sent before uploaded_by
  * @returns {Promise<{ removed: number[], kept: number[], failed: number[] }>}
  */
-const removeUnusedFiles = async (strapi, ids, reason) => {
+const removeUnusedFiles = async (strapi, ids, reason, { ownerId } = {}) => {
   const result = { removed: [], kept: [], failed: [] };
   const candidates = uniqueIds(ids);
 
@@ -140,6 +190,7 @@ const removeUnusedFiles = async (strapi, ids, reason) => {
         error.message
       }`
     );
+    await leaveForSweep(strapi, candidates, reason, ownerId);
     return { ...result, failed: candidates };
   }
 
@@ -169,6 +220,9 @@ const removeUnusedFiles = async (strapi, ids, reason) => {
         result.removed.length
       } file(s): ${result.removed.join(", ")}`
     );
+  }
+  if (result.failed.length > 0) {
+    await leaveForSweep(strapi, result.failed, reason, ownerId);
   }
 
   return result;
