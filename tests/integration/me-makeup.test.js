@@ -38,7 +38,10 @@ const NETWORK = {
   email: "contact@example.test",
   phone: "0606060606",
 };
+// the Cypress reset (profil.cy.js) sends every channel as null
 const EMPTY_NETWORK = _.mapValues(NETWORK, () => null);
+// the social media modal sends a cleared input as "" (zod .or(literal('')))
+const CLEARED_NETWORK = _.mapValues(NETWORK, () => "");
 const EXPERIENCE = {
   company: "Studio Fictif",
   job_name: "Maquilleuse plateau",
@@ -504,7 +507,7 @@ describe("/api/me-makeup", () => {
       ["the languages modal", { language: [{ name: "Anglais" }] }],
       // a channel left empty is sent as ""
       ["the social media modal", { network: { ...NETWORK, linkedin: "" } }],
-      ["an emptied network", { network: EMPTY_NETWORK }],
+      ["the social media modal emptied", { network: CLEARED_NETWORK }],
       // date_end left empty is sent as null
       [
         "the experiences modal",
@@ -562,15 +565,19 @@ describe("/api/me-makeup", () => {
         service_offers: [offer()],
       }).expect(200);
 
-      // populated one level: the front keeps the options it sent
-      // (listeApresSauvegarde in src/lib/sauvegarde-profil.js)
+      // the answer may leave the options out (populated one level): the
+      // front then keeps the ones it sent (listeApresSauvegarde in
+      // src/lib/sauvegarde-profil.js); when it has them, they are the sent ones
       expect(response.body.service_offers).toHaveLength(1);
-      expect(response.body.service_offers[0]).toMatchObject({
+      const answered = response.body.service_offers[0];
+      expect(answered).toMatchObject({
         name: "Maquillage",
         description: "Maquillage de soirée",
         price: "50€",
       });
-      expect(response.body.service_offers[0]).not.toHaveProperty("options");
+      if ("options" in answered) {
+        expect(withoutIds(answered.options)).toEqual(offer().options);
+      }
       let read = await as(artist, "get").expect(200);
       expect(withoutIds(read.body.service_offers)).toEqual([offer()]);
 
@@ -647,98 +654,124 @@ describe("/api/me-makeup", () => {
     // The limits of the content type and of its components, which the
     // modals repeat in their zod schemas. For the profile fields, the front
     // turns « <field> must be at most <n> characters » into French.
-    it.each([
-      ["first_name", 70, (value) => ({ first_name: value })],
-      ["last_name", 70, (value) => ({ last_name: value })],
-      ["speciality", 70, (value) => ({ speciality: value })],
-      ["company_artist_name", 70, (value) => ({ company_artist_name: value })],
-      ["city", 70, (value) => ({ city: value })],
-      ["description", 2000, (value) => ({ description: value })],
-      [
-        "courses[0].diploma",
-        70,
-        (value) => ({ courses: [{ ...COURSE, diploma: value }] }),
-      ],
-      [
-        "courses[0].course_description",
-        2000,
-        (value) => ({ courses: [{ ...COURSE, course_description: value }] }),
-      ],
-      [
-        "experiences[0].company",
-        70,
-        (value) => ({ experiences: [{ ...EXPERIENCE, company: value }] }),
-      ],
-      [
-        "experiences[0].description",
-        2000,
-        (value) => ({ experiences: [{ ...EXPERIENCE, description: value }] }),
-      ],
-      ["language[0].name", 70, (value) => ({ language: [{ name: value }] })],
-      [
-        "network.website",
-        200,
-        (value) => ({ network: { ...NETWORK, website: value } }),
-      ],
-      [
-        "network.phone",
-        20,
-        (value) => ({ network: { ...NETWORK, phone: value } }),
-      ],
-      [
-        "service_offers[0].name",
-        70,
-        (value) => ({ service_offers: [{ ...offer(), name: value }] }),
-      ],
-      [
-        "service_offers[0].price",
-        70,
-        (value) => ({ service_offers: [{ ...offer(), price: value }] }),
-      ],
-      [
-        "service_offers[0].options[0].price",
-        70,
-        (value) => ({
-          service_offers: [
-            { ...offer(), options: [{ ...offer().options[0], price: value }] },
-          ],
-        }),
-      ],
-      [
-        "service_offers[0].options[0].description",
-        2000,
-        (value) => ({
-          service_offers: [
-            {
-              ...offer(),
-              options: [{ ...offer().options[0], description: value }],
-            },
-          ],
-        }),
-      ],
-    ])(
-      "URG-11 - PATCH refuses %s over %i characters and changes nothing",
-      async (field, max, bodyWith) => {
-        const artist = await filledAccount("limit");
-        const before = await storedSections(artist);
+    describe("limits", () => {
+      // one artist for every row: each row compares with her profile as it
+      // was just before its own refused PATCH, whose values are never stored
+      let artist;
+      beforeAll(async () => {
+        artist = await filledAccount("limit");
+      });
 
-        const refused = await as(artist, "patch", {
-          ...bodyWith("a".repeat(max + 1)),
-          available: false,
-        }).expect(400);
+      it.each([
+        ["first_name", 70, (value) => ({ first_name: value })],
+        ["last_name", 70, (value) => ({ last_name: value })],
+        ["speciality", 70, (value) => ({ speciality: value })],
+        [
+          "company_artist_name",
+          70,
+          (value) => ({ company_artist_name: value }),
+        ],
+        ["city", 70, (value) => ({ city: value })],
+        ["description", 2000, (value) => ({ description: value })],
+        ["skills[0].name", 70, (value) => ({ skills: [{ name: value }] })],
+        [
+          "courses[0].diploma",
+          70,
+          (value) => ({ courses: [{ ...COURSE, diploma: value }] }),
+        ],
+        [
+          "courses[0].course_description",
+          2000,
+          (value) => ({ courses: [{ ...COURSE, course_description: value }] }),
+        ],
+        [
+          "experiences[0].company",
+          70,
+          (value) => ({ experiences: [{ ...EXPERIENCE, company: value }] }),
+        ],
+        [
+          "experiences[0].description",
+          2000,
+          (value) => ({
+            experiences: [{ ...EXPERIENCE, description: value }],
+          }),
+        ],
+        ["language[0].name", 70, (value) => ({ language: [{ name: value }] })],
+        // the five links and the email of the social media modal
+        ...[
+          "email",
+          "facebook",
+          "instagram",
+          "linkedin",
+          "website",
+          "youtube",
+        ].map((channel) => [
+          `network.${channel}`,
+          200,
+          (value) => ({ network: { ...NETWORK, [channel]: value } }),
+        ]),
+        [
+          "network.phone",
+          20,
+          (value) => ({ network: { ...NETWORK, phone: value } }),
+        ],
+        [
+          "service_offers[0].name",
+          70,
+          (value) => ({ service_offers: [{ ...offer(), name: value }] }),
+        ],
+        [
+          "service_offers[0].price",
+          70,
+          (value) => ({ service_offers: [{ ...offer(), price: value }] }),
+        ],
+        [
+          "service_offers[0].options[0].price",
+          70,
+          (value) => ({
+            service_offers: [
+              {
+                ...offer(),
+                options: [{ ...offer().options[0], price: value }],
+              },
+            ],
+          }),
+        ],
+        [
+          "service_offers[0].options[0].description",
+          2000,
+          (value) => ({
+            service_offers: [
+              {
+                ...offer(),
+                options: [{ ...offer().options[0], description: value }],
+              },
+            ],
+          }),
+        ],
+      ])(
+        "URG-11 - PATCH refuses %s over %i characters and changes nothing",
+        async (field, max, bodyWith) => {
+          const before = await storedSections(artist);
 
-        expect(refused.body.error.details.moreDetails).toBe(
-          `${field} must be at most ${max} characters`
-        );
-        expect(await storedSections(artist)).toEqual(before);
+          const refused = await as(artist, "patch", {
+            ...bodyWith("a".repeat(max + 1)),
+            available: false,
+          }).expect(400);
 
-        // the limit itself is stored
-        await as(artist, "patch", bodyWith("a".repeat(max))).expect(200);
-        expect(_.get(await storedSections(artist), field)).toBe(
-          "a".repeat(max)
-        );
-      }
-    );
+          expect(refused.body.error.details.moreDetails).toBe(
+            `${field} must be at most ${max} characters`
+          );
+          expect(await storedSections(artist)).toEqual(before);
+
+          // the limit itself is stored
+          await as(artist, "patch", bodyWith("a".repeat(max))).expect(200);
+          expect(_.get(await storedSections(artist), field)).toBe(
+            "a".repeat(max)
+          );
+        }
+      );
+    });
 
     it("URG-11 - an experience start date sent as '' is refused and changes nothing, null is stored", async () => {
       // the experiences modal sends date_start '' when the date is left
