@@ -240,13 +240,18 @@ module.exports = {
     // before writing anything: only her own pictures
     await checkRequestedFiles(user, existing[0], fields);
 
-    // update the makeup artist linked to user
-    let updated = await strapi.entityService.update(
-      "api::makeup-artiste.makeup-artiste",
-      existing[0].id, // id of makeup artist linked to user
-      {
-        data: fields,
-      }
+    // update the makeup artist linked to user, in one transaction: Strapi
+    // 4.26 deletes the stored components of a section before it writes the
+    // new ones, outside any transaction, so a value the database refuses (a
+    // date sent as "") answered 400 after her stored sections were emptied
+    let updated = await strapi.db.transaction(() =>
+      strapi.entityService.update(
+        "api::makeup-artiste.makeup-artiste",
+        existing[0].id, // id of makeup artist linked to user
+        {
+          data: fields,
+        }
+      )
     );
 
     // Same shape as populate: "*" without createdBy/updatedBy, which

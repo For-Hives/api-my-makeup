@@ -1,9 +1,12 @@
 // S05, S06, S07: the profile space endpoints (/api/me-makeup), the
 // 2-character names of UI-01, and the pictures of UI-03 (only her own
 // files, a replaced or removed picture deleted, her files deleted with her
-// account).
+// account). URG-11: what the removed Cypress specs checked against the
+// production API (front cypress/e2e/auth, removed by front #956), on the
+// in-process Strapi only.
 const fs = require("fs");
 const path = require("path");
+const _ = require("lodash");
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const { setupStrapi, stopStrapi } = require("../helpers/strapi");
 const {
@@ -20,6 +23,49 @@ const USER_UID = "plugin::users-permissions.user";
 const FILE_UID = "plugin::upload.file";
 const ARTICLE_UID = "api::article.article";
 const DAY = 24 * 60 * 60 * 1000;
+
+// Values of the Cypress specs, with fictional contact details
+const NETWORK = {
+  youtube: "https://youtube.com/@fictional",
+  facebook: "https://facebook.com/fictional",
+  instagram: "https://instagram.com/fictional",
+  website: "https://my-makeup.example.test",
+  linkedin: "https://linkedin.com/in/fictional",
+  email: "contact@example.test",
+  phone: "0606060606",
+};
+const EXPERIENCE = {
+  company: "Studio Fictif",
+  job_name: "Maquilleuse plateau",
+  city: "Nantes",
+  date_start: "2021-05-01",
+  date_end: "2023-05-01",
+  description: "Maquillage de tournage",
+};
+
+// A value without the ids Strapi gives its components, as the modals send it
+const withoutIds = (value) => {
+  if (Array.isArray(value)) {
+    return value.map(withoutIds);
+  }
+  if (_.isPlainObject(value)) {
+    return _.mapValues(_.omit(value, "id"), withoutIds);
+  }
+  return value;
+};
+
+// The profile as stored, every component with the options of its offers
+const storedSections = (account) =>
+  strapi.entityService.findOne(PROFILE_UID, account.profile.id, {
+    populate: {
+      skills: true,
+      experiences: true,
+      courses: true,
+      language: true,
+      network: true,
+      service_offers: { populate: { options: true } },
+    },
+  });
 
 const SECRET_KEYS = ["password", "resetPasswordToken", "confirmationToken"];
 
@@ -276,6 +322,85 @@ describe("/api/me-makeup", () => {
         where: { id: other.profile.id },
       })
     ).not.toBeNull();
+  });
+
+  describe("sections saved from the profile modals (URG-11)", () => {
+    let count = 0;
+    // a stored offer other than the ones the tests send
+    const STORED_OFFER = {
+      name: "Offre A",
+      description: "Forfait mariée",
+      price: "120€",
+      options: [{ name: "Essai", description: "Un essai", price: "40€" }],
+    };
+    // an artist with one item in every section
+    const filledAccount = (prefix) =>
+      createAccount(`${prefix}-${++count}`, {
+        first_name: "Prenom",
+        last_name: "Nom",
+        speciality: "Mariage",
+        company_artist_name: "Studio Test",
+        city: "Annecy",
+        action_radius: 20,
+        available: true,
+        description: "Description initiale",
+        skills: [{ name: "Teint" }],
+        experiences: [EXPERIENCE],
+        courses: [
+          {
+            diploma: "CAP esthétique",
+            school: "Lycée Fictif",
+            date_graduation: "2015-06-30",
+            course_description: "Soins et maquillage",
+          },
+        ],
+        service_offers: [STORED_OFFER],
+        language: [{ name: "Français" }],
+        network: NETWORK,
+      });
+
+    it("URG-11 - an experience start date sent as '' is refused and changes nothing, null is stored", async () => {
+      // the experiences modal sends date_start '' when the date is left
+      // empty (only date_end becomes null). The database refuses it once
+      // Strapi has deleted the stored components of the PATCH: without a
+      // transaction, that 400 emptied her experiences and her skills.
+      const artist = await filledAccount("no-start");
+      const before = await storedSections(artist);
+      const skillRows = () => strapi.db.query("makeupartists.skills").count();
+      const skillRowsBefore = await skillRows();
+      const added = {
+        company: "Studio Fictif",
+        job_name: "Assistante",
+        city: "Nantes",
+        date_end: null,
+        description: "Défilés",
+      };
+
+      const refused = await as(artist, "patch", {
+        skills: [{ name: "Ongles" }],
+        experiences: [{ ...added, date_start: "" }],
+        city: "Lyon",
+      }).expect(400);
+
+      expect(refused.body.error.details.moreDetails).toBe(
+        "Invalid format, expected yyyy-MM-dd"
+      );
+      expect(await storedSections(artist)).toEqual(before);
+      const read = await as(artist, "get").expect(200);
+      expect(withoutIds(read.body.experiences)).toEqual([EXPERIENCE]);
+      expect(withoutIds(read.body.skills)).toEqual([
+        { name: "Teint", description: null },
+      ]);
+      // the skill written before the refusal is not left behind either
+      expect(await skillRows()).toBe(skillRowsBefore);
+
+      await as(artist, "patch", {
+        experiences: [{ ...added, date_start: null }],
+      }).expect(200);
+      expect(withoutIds((await storedSections(artist)).experiences)).toEqual([
+        { ...added, date_start: null },
+      ]);
+    });
   });
 
   describe("pictures (UI-03)", () => {
