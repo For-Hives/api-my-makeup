@@ -1,9 +1,14 @@
 // S05, S06, S07: the profile space endpoints (/api/me-makeup), the
 // 2-character names of UI-01, and the pictures of UI-03 (only her own
 // files, a replaced or removed picture deleted, her files deleted with her
-// account).
+// account). URG-11: what the removed Cypress specs checked against the
+// production API (front cypress/e2e/auth, removed by front #956), on the
+// in-process Strapi only: the profile created at the onboarding, the exact
+// bodies the profile modals send, the length limits, the bounds of the
+// action radius and the reset.
 const fs = require("fs");
 const path = require("path");
+const _ = require("lodash");
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const { setupStrapi, stopStrapi } = require("../helpers/strapi");
 const {
@@ -20,6 +25,74 @@ const USER_UID = "plugin::users-permissions.user";
 const FILE_UID = "plugin::upload.file";
 const ARTICLE_UID = "api::article.article";
 const DAY = 24 * 60 * 60 * 1000;
+
+// Values of the Cypress specs, with fictional contact details. The
+// speciality has 65 characters and an accent: under the limit of 70.
+const SPECIALITY =
+  "Maquilleur professionnel et coiffeur professionnel pour le cinéma";
+const NETWORK = {
+  youtube: "https://youtube.com/@fictional",
+  facebook: "https://facebook.com/fictional",
+  instagram: "https://instagram.com/fictional",
+  website: "https://my-makeup.example.test",
+  linkedin: "https://linkedin.com/in/fictional",
+  email: "contact@example.test",
+  phone: "0606060606",
+};
+// the Cypress reset (profil.cy.js) sends every channel as null
+const EMPTY_NETWORK = _.mapValues(NETWORK, () => null);
+// the social media modal sends a cleared input as "" (zod .or(literal('')))
+const CLEARED_NETWORK = _.mapValues(NETWORK, () => "");
+const EXPERIENCE = {
+  company: "Studio Fictif",
+  job_name: "Maquilleuse plateau",
+  city: "Nantes",
+  date_start: "2021-05-01",
+  date_end: "2023-05-01",
+  description: "Maquillage de tournage",
+};
+const COURSE = {
+  diploma: "Epsi",
+  school: "epsi",
+  date_graduation: "2022-12-15",
+  course_description: "informatique",
+};
+// An offer as the offers modal sends it (offresAEnvoyer: every option, no
+// id); profil-edge.cy.js edited it with the suffix " Modified"
+const offer = (suffix = "") => ({
+  name: `Maquillage${suffix}`,
+  description: `Maquillage de soirée${suffix}`,
+  price: `50€${suffix}`,
+  options: [1, 2, 3].map((n) => ({
+    name: `Maquillage ${n}${suffix}`,
+    description: `Maquillage de soirée ${n}${suffix}`,
+    price: `50€ ${n}${suffix}`,
+  })),
+});
+
+// A value without the ids Strapi gives its components, as the modals send it
+const withoutIds = (value) => {
+  if (Array.isArray(value)) {
+    return value.map(withoutIds);
+  }
+  if (_.isPlainObject(value)) {
+    return _.mapValues(_.omit(value, "id"), withoutIds);
+  }
+  return value;
+};
+
+// The profile as stored, every component with the options of its offers
+const storedSections = (account) =>
+  strapi.entityService.findOne(PROFILE_UID, account.profile.id, {
+    populate: {
+      skills: true,
+      experiences: true,
+      courses: true,
+      language: true,
+      network: true,
+      service_offers: { populate: { options: true } },
+    },
+  });
 
 const SECRET_KEYS = ["password", "resetPasswordToken", "confirmationToken"];
 
@@ -278,6 +351,510 @@ describe("/api/me-makeup", () => {
     ).not.toBeNull();
   });
 
+  describe("POST, the profile of a new account (URG-11)", () => {
+    const profilesOf = (account) =>
+      strapi.entityService.findMany(PROFILE_UID, {
+        fields: ["id"],
+        filters: { user: { id: { $eq: account.user.id } } },
+        populate: { user: { fields: ["id"] } },
+      });
+
+    it("URG-11 - POST creates the profile of a new account, then its PATCH and GET work", async () => {
+      const fresh = await createAccount("fresh");
+      // before it, the name step's PATCH is refused: the onboarding waits for
+      // the POST answer (front init-account)
+      for (const call of [
+        () => as(fresh, "get"),
+        () => as(fresh, "patch", { first_name: "Al" }),
+      ]) {
+        const refused = await call().expect(400);
+        expect(refused.body.error.details.moreDetails).toBe(
+          "Makeup artist does not exist for this user"
+        );
+      }
+
+      const created = await as(fresh, "post", {}).expect(200);
+
+      expect(created.body).toMatchObject({
+        username: "fresh",
+        first_name: null,
+        last_name: null,
+        speciality: "",
+        city: "",
+        description: "",
+      });
+      expectNoAccountSecrets(created.body);
+      expect(
+        (await profilesOf(fresh)).map((profile) => [
+          profile.id,
+          profile.user.id,
+        ])
+      ).toEqual([[created.body.id, fresh.user.id]]);
+
+      await as(fresh, "patch", { first_name: "Al", last_name: "Bo" }).expect(
+        200
+      );
+      const read = await as(fresh, "get").expect(200);
+      expect(read.body).toMatchObject({
+        id: created.body.id,
+        first_name: "Al",
+        last_name: "Bo",
+        user: {
+          id: fresh.user.id,
+          username: "fresh",
+          email: "fresh@example.test",
+        },
+      });
+    });
+
+    it("URG-11 - a second POST answers 400 « already exists » and creates nothing", async () => {
+      const twice = await createAccount("twice");
+      const first = await as(twice, "post", {}).expect(200);
+
+      const second = await as(twice, "post", {}).expect(400);
+
+      expect(second.body.error.message).toBe(
+        "Makeup artist initialisation error"
+      );
+      // the front reads /already exists/ as « the profile is there »
+      // (profilCree in src/lib/sauvegarde-profil.js)
+      expect(second.body.error.details.moreDetails).toBe(
+        "Makeup artist already exists for this user"
+      );
+      expect((await profilesOf(twice)).map((profile) => profile.id)).toEqual([
+        first.body.id,
+      ]);
+    });
+
+    it("URG-11 - POST without a valid JWT is refused and creates nothing", async () => {
+      const before = await strapi.query(PROFILE_UID).count();
+
+      await http().post("/api/me-makeup").send({}).expect(403);
+      await http()
+        .post("/api/me-makeup")
+        .set("Authorization", "Bearer not-a-jwt")
+        .send({})
+        .expect(401);
+
+      expect(await strapi.query(PROFILE_UID).count()).toBe(before);
+    });
+  });
+
+  describe("sections saved from the profile modals (URG-11)", () => {
+    let count = 0;
+    // a stored offer other than the ones the tests send
+    const STORED_OFFER = {
+      name: "Offre A",
+      description: "Forfait mariée",
+      price: "120€",
+      options: [{ name: "Essai", description: "Un essai", price: "40€" }],
+    };
+    // an artist with one item in every section
+    const filledAccount = (prefix) =>
+      createAccount(`${prefix}-${++count}`, {
+        first_name: "Prenom",
+        last_name: "Nom",
+        speciality: "Mariage",
+        company_artist_name: "Studio Test",
+        city: "Annecy",
+        action_radius: 20,
+        available: true,
+        description: "Description initiale",
+        skills: [{ name: "Teint" }],
+        experiences: [EXPERIENCE],
+        courses: [
+          {
+            diploma: "CAP esthétique",
+            school: "Lycée Fictif",
+            date_graduation: "2015-06-30",
+            course_description: "Soins et maquillage",
+          },
+        ],
+        service_offers: [STORED_OFFER],
+        language: [{ name: "Français" }],
+        network: NETWORK,
+      });
+
+    // The exact bodies the modals send (front ModalUpdate*Profil.js), which
+    // Cypress sent to the production API and only the fake Strapi of the
+    // front receives now. Stored as sent, unless a third value says how.
+    it.each([
+      [
+        "the resume modal",
+        {
+          first_name: "Utilisateur",
+          last_name: "DE TEST",
+          speciality: SPECIALITY,
+          company_artist_name: "My Makeup Artist",
+          available: false,
+        },
+      ],
+      ["an emptied description", { description: "" }],
+      ["an emptied location", { city: "", action_radius: null }],
+      // the location form sends the radius as typed, a string, to an
+      // integer field
+      [
+        "the location modal",
+        { city: "Nantes", action_radius: "5" },
+        { city: "Nantes", action_radius: 5 },
+      ],
+      ["no skill left", { skills: [] }],
+      [
+        "a new skill",
+        { skills: [{ name: "pieds" }] },
+        { skills: [{ name: "pieds", description: null }] },
+      ],
+      ["no language left", { language: [] }],
+      ["the languages modal", { language: [{ name: "Anglais" }] }],
+      // a channel left empty is sent as ""
+      ["the social media modal", { network: { ...NETWORK, linkedin: "" } }],
+      ["the social media modal emptied", { network: CLEARED_NETWORK }],
+      // date_end left empty is sent as null
+      [
+        "the experiences modal",
+        { experiences: [{ ...EXPERIENCE, date_end: null }] },
+      ],
+      ["no experience left", { experiences: [] }],
+      ["no course left", { courses: [] }],
+      ["the courses modal", { courses: [COURSE] }],
+    ])(
+      "URG-11 - PATCH from %s: 200, answered and read back as stored",
+      async (label, body, expected = body) => {
+        const artist = await filledAccount("contract");
+        const fields = Object.keys(expected);
+
+        const response = await as(artist, "patch", body).expect(200);
+
+        expect(withoutIds(_.pick(response.body, fields))).toEqual(expected);
+        const read = await as(artist, "get").expect(200);
+        expect(withoutIds(_.pick(read.body, fields))).toEqual(expected);
+        expect(
+          withoutIds(_.pick(await storedSections(artist), fields))
+        ).toEqual(expected);
+      }
+    );
+
+    it("URG-11 - the courses are replaced at each save, never appended", async () => {
+      const artist = await filledAccount("courses");
+
+      // the stored course deleted in the modal, a new one added
+      await as(artist, "patch", { courses: [COURSE] }).expect(200);
+      expect(withoutIds((await storedSections(artist)).courses)).toEqual([
+        COURSE,
+      ]);
+
+      // then edited in place (profil-edge.cy.js)
+      const edited = {
+        diploma: "EpsiModified",
+        school: "epsiModified",
+        date_graduation: "2022-10-10",
+        course_description: "informatiqueModified",
+      };
+      await as(artist, "patch", { courses: [edited] }).expect(200);
+
+      const read = await as(artist, "get").expect(200);
+      expect(withoutIds(read.body.courses)).toEqual([edited]);
+    });
+
+    it("URG-11 - an offer with 3 options: stored, read back in order, replaced when edited", async () => {
+      const artist = await filledAccount("offers");
+      const optionRows = () =>
+        strapi.db.query("service-offers.options").count();
+      const rowsBefore = await optionRows();
+
+      const response = await as(artist, "patch", {
+        service_offers: [offer()],
+      }).expect(200);
+
+      // the answer may leave the options out (populated one level): the
+      // front then keeps the ones it sent (listeApresSauvegarde in
+      // src/lib/sauvegarde-profil.js); when it has them, they are the sent ones
+      expect(response.body.service_offers).toHaveLength(1);
+      const answered = response.body.service_offers[0];
+      expect(answered).toMatchObject({
+        name: "Maquillage",
+        description: "Maquillage de soirée",
+        price: "50€",
+      });
+      if ("options" in answered) {
+        expect(withoutIds(answered.options)).toEqual(offer().options);
+      }
+      let read = await as(artist, "get").expect(200);
+      expect(withoutIds(read.body.service_offers)).toEqual([offer()]);
+
+      await as(artist, "patch", {
+        service_offers: [offer(" Modified")],
+      }).expect(200);
+      read = await as(artist, "get").expect(200);
+      expect(withoutIds(read.body.service_offers)).toEqual([
+        offer(" Modified"),
+      ]);
+
+      // an offer sent without its options loses them: the modal always
+      // sends every option (offresAEnvoyer)
+      const bare = _.omit(offer(), "options");
+      await as(artist, "patch", { service_offers: [bare] }).expect(200);
+      read = await as(artist, "get").expect(200);
+      expect(withoutIds(read.body.service_offers)).toEqual([
+        { ...bare, options: [] },
+      ]);
+
+      await as(artist, "patch", { service_offers: [] }).expect(200);
+      read = await as(artist, "get").expect(200);
+      expect(read.body.service_offers).toEqual([]);
+      // her stored option and the 6 sent are all gone, none left behind
+      expect(await optionRows()).toBe(rowsBefore - 1);
+    });
+
+    it("URG-11 - one PATCH with every section, as Cypress sent it: 200 and every value stored", async () => {
+      const artist = await createAccount("complete", { first_name: "Prenom" });
+      const main = await uploadPicture(artist.jwt, await picture(201));
+      const gallery = await uploadPicture(artist.jwt, await picture(202));
+      const scalars = {
+        last_name: "DE TEST",
+        first_name: "Utilisateur",
+        speciality: SPECIALITY,
+        city: "Nantes",
+        available: true,
+        description:
+          "Je suis une maquilleuse passionnée avec plus de 10 ans d'expérience...",
+        company_artist_name: "My Makeup Artist",
+      };
+      const sections = {
+        skills: [{ name: "pieds" }],
+        experiences: [EXPERIENCE],
+        courses: [COURSE],
+        service_offers: [offer()],
+        network: NETWORK,
+        language: [{ name: "Anglais" }],
+      };
+
+      // the pictures as the front sends them: ids of her own uploads
+      // (Cypress sent the ids of two production files)
+      const response = await as(artist, "patch", {
+        ...scalars,
+        ...sections,
+        action_radius: "5",
+        main_picture: main.id,
+        image_gallery: [gallery.id],
+      }).expect(200);
+
+      expect(response.body).toMatchObject({ ...scalars, action_radius: 5 });
+      expect(response.body.main_picture.id).toBe(main.id);
+      expect(response.body.image_gallery.map((file) => file.id)).toEqual([
+        gallery.id,
+      ]);
+      const stored = await storedSections(artist);
+      expect(stored).toMatchObject({ ...scalars, action_radius: 5 });
+      expect(withoutIds(_.pick(stored, Object.keys(sections)))).toEqual({
+        ...sections,
+        skills: [{ name: "pieds", description: null }],
+      });
+    });
+
+    // The limits of the content type and of its components, which the
+    // modals repeat in their zod schemas. For the profile fields, the front
+    // turns « <field> must be at most <n> characters » into French.
+    describe("limits", () => {
+      // one artist for every row: each row compares with her profile as it
+      // was just before its own refused PATCH, whose values are never stored
+      let artist;
+      beforeAll(async () => {
+        artist = await filledAccount("limit");
+      });
+
+      it.each([
+        ["first_name", 70, (value) => ({ first_name: value })],
+        ["last_name", 70, (value) => ({ last_name: value })],
+        ["speciality", 70, (value) => ({ speciality: value })],
+        [
+          "company_artist_name",
+          70,
+          (value) => ({ company_artist_name: value }),
+        ],
+        ["city", 70, (value) => ({ city: value })],
+        ["description", 2000, (value) => ({ description: value })],
+        ["skills[0].name", 70, (value) => ({ skills: [{ name: value }] })],
+        [
+          "courses[0].diploma",
+          70,
+          (value) => ({ courses: [{ ...COURSE, diploma: value }] }),
+        ],
+        [
+          "courses[0].course_description",
+          2000,
+          (value) => ({ courses: [{ ...COURSE, course_description: value }] }),
+        ],
+        [
+          "experiences[0].company",
+          70,
+          (value) => ({ experiences: [{ ...EXPERIENCE, company: value }] }),
+        ],
+        [
+          "experiences[0].description",
+          2000,
+          (value) => ({
+            experiences: [{ ...EXPERIENCE, description: value }],
+          }),
+        ],
+        ["language[0].name", 70, (value) => ({ language: [{ name: value }] })],
+        // the five links and the email of the social media modal
+        ...[
+          "email",
+          "facebook",
+          "instagram",
+          "linkedin",
+          "website",
+          "youtube",
+        ].map((channel) => [
+          `network.${channel}`,
+          200,
+          (value) => ({ network: { ...NETWORK, [channel]: value } }),
+        ]),
+        [
+          "network.phone",
+          20,
+          (value) => ({ network: { ...NETWORK, phone: value } }),
+        ],
+        [
+          "service_offers[0].name",
+          70,
+          (value) => ({ service_offers: [{ ...offer(), name: value }] }),
+        ],
+        [
+          "service_offers[0].price",
+          70,
+          (value) => ({ service_offers: [{ ...offer(), price: value }] }),
+        ],
+        [
+          "service_offers[0].options[0].price",
+          70,
+          (value) => ({
+            service_offers: [
+              {
+                ...offer(),
+                options: [{ ...offer().options[0], price: value }],
+              },
+            ],
+          }),
+        ],
+        [
+          "service_offers[0].options[0].description",
+          2000,
+          (value) => ({
+            service_offers: [
+              {
+                ...offer(),
+                options: [{ ...offer().options[0], description: value }],
+              },
+            ],
+          }),
+        ],
+      ])(
+        "URG-11 - PATCH refuses %s over %i characters and changes nothing",
+        async (field, max, bodyWith) => {
+          const before = await storedSections(artist);
+
+          const refused = await as(artist, "patch", {
+            ...bodyWith("a".repeat(max + 1)),
+            available: false,
+          }).expect(400);
+
+          expect(refused.body.error.details.moreDetails).toBe(
+            `${field} must be at most ${max} characters`
+          );
+          expect(await storedSections(artist)).toEqual(before);
+
+          // the limit itself is stored
+          await as(artist, "patch", bodyWith("a".repeat(max))).expect(200);
+          expect(_.get(await storedSections(artist), field)).toBe(
+            "a".repeat(max)
+          );
+        }
+      );
+
+      // The location modal caps the radius at 10 characters, not at a
+      // number, and sends it as typed. Without a bound in the content type,
+      // SQLite stored 9999999999 while Postgres refused it with the SQL text
+      // of the update in moreDetails: both now refuse with the same message.
+      it.each([
+        ["9999999999", "less than or equal to 2147483647"],
+        ["2147483648", "less than or equal to 2147483647"],
+        ["-5", "greater than or equal to 0"],
+      ])(
+        "URG-11 - PATCH refuses an action radius of %s and changes nothing",
+        async (radius, rule) => {
+          const before = await storedSections(artist);
+
+          const refused = await as(artist, "patch", {
+            city: "Lyon",
+            action_radius: radius,
+          }).expect(400);
+
+          expect(refused.body.error.details.moreDetails).toBe(
+            `action_radius must be ${rule}`
+          );
+          expect(await storedSections(artist)).toEqual(before);
+        }
+      );
+
+      it("URG-11 - PATCH stores the action radius bounds, 0 and 2147483647", async () => {
+        for (const radius of ["0", "2147483647"]) {
+          await as(artist, "patch", {
+            city: "Grenoble",
+            action_radius: radius,
+          }).expect(200);
+          const stored = await storedSections(artist);
+          expect(stored.city).toBe("Grenoble");
+          expect(stored.action_radius).toBe(Number(radius));
+        }
+      });
+    });
+
+    it("URG-11 - an experience start date sent as '' is refused and changes nothing, null is stored", async () => {
+      // the experiences modal sends date_start '' when the date is left
+      // empty (only date_end becomes null). The database refuses it once
+      // Strapi has deleted the stored components of the PATCH: without a
+      // transaction, that 400 emptied her experiences and her skills.
+      const artist = await filledAccount("no-start");
+      const before = await storedSections(artist);
+      const skillRows = () => strapi.db.query("makeupartists.skills").count();
+      const skillRowsBefore = await skillRows();
+      const added = {
+        company: "Studio Fictif",
+        job_name: "Assistante",
+        city: "Nantes",
+        date_end: null,
+        description: "Défilés",
+      };
+
+      const refused = await as(artist, "patch", {
+        skills: [{ name: "Ongles" }],
+        experiences: [{ ...added, date_start: "" }],
+        city: "Lyon",
+      }).expect(400);
+
+      expect(refused.body.error.details.moreDetails).toBe(
+        "Invalid format, expected yyyy-MM-dd"
+      );
+      expect(await storedSections(artist)).toEqual(before);
+      const read = await as(artist, "get").expect(200);
+      expect(withoutIds(read.body.experiences)).toEqual([EXPERIENCE]);
+      expect(withoutIds(read.body.skills)).toEqual([
+        { name: "Teint", description: null },
+      ]);
+      // the skill written before the refusal is not left behind either
+      expect(await skillRows()).toBe(skillRowsBefore);
+
+      await as(artist, "patch", {
+        experiences: [{ ...added, date_start: null }],
+      }).expect(200);
+      expect(withoutIds((await storedSections(artist)).experiences)).toEqual([
+        { ...added, date_start: null },
+      ]);
+    });
+  });
+
   describe("pictures (UI-03)", () => {
     let seed = 0;
     // a new picture of `account`, sent through POST /api/upload
@@ -457,6 +1034,109 @@ describe("/api/me-makeup", () => {
       });
       await expectKept(moved);
       await expectRemoved(main);
+    });
+
+    it("URG-11 - a gallery of 10 of her pictures is saved in order, then emptied and every file removed", async () => {
+      const artist = await createAccount("pictures-ten", {
+        first_name: "Photo",
+      });
+      const files = [];
+      for (let i = 0; i < 10; i++) {
+        files.push(await upload(artist));
+      }
+      const ids = files.map((file) => file.id);
+
+      const saved = await as(artist, "patch", { image_gallery: ids }).expect(
+        200
+      );
+
+      expect(saved.body.image_gallery.map((file) => file.id)).toEqual(ids);
+      expect((await storedMedia(artist)).gallery).toEqual(ids);
+
+      // every picture removed in the portfolio modal, then saved
+      await as(artist, "patch", { image_gallery: [] }).expect(200);
+
+      expect((await storedMedia(artist)).gallery).toEqual([]);
+      const read = await as(artist, "get").expect(200);
+      expect(read.body.image_gallery ?? []).toEqual([]);
+      for (const file of files) {
+        await expectRemoved(file);
+      }
+    });
+
+    it("URG-11 - the Cypress reset, a PATCH emptying every section and both pictures, answers 200", async () => {
+      const artist = await createAccount("pictures-reset", {
+        first_name: "Prenom",
+        last_name: "Nom",
+        speciality: "Mariage",
+        company_artist_name: "Studio Test",
+        city: "Annecy",
+        action_radius: 20,
+        available: true,
+        description: "Description initiale",
+        skills: [{ name: "Teint" }],
+        experiences: [EXPERIENCE],
+        courses: [COURSE],
+        service_offers: [offer()],
+        language: [{ name: "Français" }],
+        network: NETWORK,
+      });
+      const main = await upload(artist);
+      const first = await upload(artist);
+      const second = await upload(artist);
+      await as(artist, "patch", {
+        main_picture: main.id,
+        image_gallery: [first.id, second.id],
+      }).expect(200);
+
+      // the body of profil.cy.js, score included (ignored)
+      await as(artist, "patch", {
+        last_name: "TEST",
+        first_name: "test",
+        speciality: "",
+        city: null,
+        action_radius: null,
+        score: null,
+        available: null,
+        description: null,
+        company_artist_name: null,
+        network: EMPTY_NETWORK,
+        skills: [],
+        experiences: [],
+        courses: [],
+        service_offers: [],
+        language: [],
+        image_gallery: null,
+        main_picture: null,
+      }).expect(200);
+
+      const read = await as(artist, "get").expect(200);
+      expect(read.body).toMatchObject({
+        last_name: "TEST",
+        first_name: "test",
+        speciality: "",
+        city: null,
+        action_radius: null,
+        available: null,
+        description: null,
+        company_artist_name: null,
+        skills: [],
+        experiences: [],
+        courses: [],
+        service_offers: [],
+        language: [],
+        main_picture: null,
+      });
+      expect(withoutIds(read.body.network)).toEqual(EMPTY_NETWORK);
+      expect(read.body.image_gallery ?? []).toEqual([]);
+      expect(await storedMedia(artist)).toEqual({
+        main: null,
+        gallery: [],
+        city: null,
+      });
+      for (const file of [main, first, second]) {
+        await expectRemoved(file);
+      }
     });
 
     it("UI-03 - a removed picture that an article also uses is kept", async () => {
