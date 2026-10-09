@@ -222,6 +222,20 @@ describe("GET /api/searching", () => {
     expect(withCity.body.every((result) => result.city === "Lyon")).toBe(true);
   });
 
+  it("S09 - the words of the request and of the trade are not required", async () => {
+    // offres says « evenement » but never « maquilleuse »
+    for (const term of [
+      "maquilleuse événement",
+      "je cherche une maquilleuse pour un événement",
+    ]) {
+      const response = await search(newClient(), { search: term }).expect(200);
+
+      expect(response.body.map((result) => result.username)).toEqual([
+        "offres",
+      ]);
+    }
+  });
+
   it("S09 - accents are ignored, in the term and in the profile", async () => {
     for (const term of ["evenement", "événement"]) {
       const response = await search(newClient(), { search: term }).expect(200);

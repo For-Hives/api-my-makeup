@@ -158,6 +158,29 @@ const STOP_WORDS = new Set([
   "une",
 ]);
 
+// Words of the request itself, or that every profile of the site is about:
+// required, they would only drop the profiles that do not repeat them.
+// « je cherche une maquilleuse pour mon mariage » looks for « mariage », as
+// « mariage » alone does. Accents are already removed.
+const QUERY_WORDS = new Set([
+  "artist",
+  "artiste",
+  "besoin",
+  "cherche",
+  "recherche",
+  "maquillage",
+  "maquillages",
+  "maquilleur",
+  "maquilleurs",
+  "maquilleuse",
+  "maquilleuses",
+  "makeup",
+  "souhaite",
+  "trouver",
+  "veux",
+  "voudrais",
+]);
+
 /**
  * The words a profile must all match, accents removed. Split on spaces
  * only, so that an email stays one word. A term of one word, or of short
@@ -168,7 +191,8 @@ const STOP_WORDS = new Set([
 const searchWords = (term) => {
   const words = [...new Set(term.toLowerCase().split(/\s+/).filter(Boolean))];
   const significant = words.filter(
-    (word) => word.length >= 3 && !STOP_WORDS.has(word)
+    (word) =>
+      word.length >= 3 && !STOP_WORDS.has(word) && !QUERY_WORDS.has(word)
   );
   return words.length > 1 && significant.length ? significant : [term];
 };
