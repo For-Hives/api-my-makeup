@@ -16,8 +16,16 @@
       "allowedVersions": "<5"
     },
     {
-      "description": "Security fixes only: no major, minor or patch update outside a security alert (those go through vulnerabilityAlerts, which overrides this rule). Strapi 4 stays on Node 20 and on its 4.26 line",
-      "matchUpdateTypes": ["major", "minor", "patch"],
+      "description": "Security fixes only: no update of any kind (version, pin, digest or replacement of a deprecated package) outside a security alert (those go through vulnerabilityAlerts, which overrides this rule). Strapi 4 stays on Node 20 and on its 4.26 line",
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+        "patch",
+        "pin",
+        "digest",
+        "pinDigest",
+        "replacement"
+      ],
       "enabled": false
     },
     {
