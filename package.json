@@ -25,6 +25,7 @@
     "husky": "9.1.7",
     "jest": "30.4.2",
     "lint-staged": "16.1.2",
+    "smtp-server": "3.19.13",
     "sqlite3": "5.1.7",
     "supertest": "7.2.2"
   },
@@ -44,6 +45,11 @@
     "react-router-dom": "5.3.4",
     "styled-components": "5.3.11"
   },
+  "resolutions": {
+    "@casl/ability": "6.7.5",
+    "nodemailer": "10.0.10",
+    "sharp": "0.35.5"
+  },
   "author": {
     "name": "ForHive"
   },
@@ -51,7 +57,7 @@
     "uuid": "c0d864b1-1b09-4b5b-b4b4-416ea404ac56"
   },
   "engines": {
-    "node": ">=20.0.0 <=20.x.x",
+    "node": ">=20.9.0 <=20.x.x",
     "npm": ">=6.0.0"
   },
   "license": "MIT",

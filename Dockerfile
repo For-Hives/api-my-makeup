@@ -1,5 +1,8 @@
 # Node 20 only: @strapi/pack-up 4.23.0 (pulled in by Strapi 4.26.2) refuses
 # Node 22. Keep in sync with .nvmrc and engines.node in package.json.
+# sharp 0.35 (upload plugin) needs Node >= 20.9 and an x86-64-v2 or arm64
+# host CPU: its prebuilt linux-x64 binary refuses older CPUs, and the API
+# would not boot there.
 
 # --- Production dependencies, installed from the committed lockfile ---
 FROM docker.io/library/node:20-bookworm-slim AS deps
