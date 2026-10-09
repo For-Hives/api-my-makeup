@@ -21,6 +21,16 @@ module.exports = {
     // X-Forwarded-For, the one Traefik adds: the entries before it come
     // from the client and are free to lie.
     strapi.server.app.maxIpsCount = 1;
+
+    // The documentation plugin (development only) generates the core
+    // routes of each API, never the custom ones: /me-makeup comes from its
+    // own file
+    const documentation = strapi.plugin("documentation");
+    if (documentation) {
+      documentation.service("override").registerOverride({
+        paths: require("./api/makeup-artiste/documentation/1.0.0/me-makeup.json"),
+      });
+    }
   },
 
   /**
