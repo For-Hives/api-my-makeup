@@ -16,17 +16,9 @@
       "allowedVersions": "<5"
     },
     {
-      "description": "Strapi 4 stays on Node 20 and on its 4.26 line: no minor or major update outside a security fix (those go through vulnerabilityAlerts, which overrides this rule)",
-      "matchUpdateTypes": ["major", "minor"],
+      "description": "Security fixes only: no major, minor or patch update outside a security alert (those go through vulnerabilityAlerts, which overrides this rule). Strapi 4 stays on Node 20 and on its 4.26 line",
+      "matchUpdateTypes": ["major", "minor", "patch"],
       "enabled": false
-    },
-    {
-      "description": "The remaining patch updates, in one weekly pull request, never merged automatically",
-      "matchUpdateTypes": ["patch"],
-      "groupName": "patch updates",
-      "groupSlug": "patch-updates",
-      "schedule": ["before 6am on monday"],
-      "automerge": false
     },
     {
       "description": "Pinned for the Strapi 4 admin panel",
