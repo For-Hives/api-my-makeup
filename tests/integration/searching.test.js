@@ -1,13 +1,33 @@
-// S09: GET /api/searching answers without a term, returns 50 profiles at
-// most, counts available=null as available, carries no contact details,
-// account or internal score, finds nothing for an unknown term nor for an
-// email or phone (UI-07), and brakes at 60 requests per minute per client
-// address.
+// S09: GET /api/searching answers without a term, returns every match in one
+// answer (200 at most), counts available=null as available, keeps the fields
+// of a result card only (no contact details, account or score), finds
+// nothing for an unknown term nor for an email or phone (UI-07), and brakes
+// at 60 requests per minute per client address.
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const { setupStrapi, stopStrapi } = require("../helpers/strapi");
 const { http, createAccount, findKeys } = require("../helpers/fixtures");
 
 const PROFILE_UID = "api::makeup-artiste.makeup-artiste";
+
+// The fields of a result card (front src/pages/search.js) and of the split
+// by place of UI-10
+const CARD_KEYS = [
+  "action_radius",
+  "city",
+  "company_artist_name",
+  "first_name",
+  "id",
+  "last_name",
+  "main_picture",
+  "pro",
+  "skills",
+  "speciality",
+  "username",
+];
+
+// More matches than the 50 the API used to return, and than its old
+// internal cap of 100
+const LYON_PROFILES = 120;
 
 let nextAddress = 1;
 // each test searches from its own client address (proxy: true)
@@ -34,15 +54,17 @@ const createProfile = (username, data) =>
   });
 
 describe("GET /api/searching", () => {
+  let picture;
+
   beforeAll(async () => {
     await setupStrapi();
 
-    // 60 searchable profiles: 35 available, 25 never set (null)
-    for (let i = 0; i < 35; i++) {
-      await createProfile(`dispo-${i}`, { city: "Lyon", available: true });
-    }
-    for (let i = 0; i < 25; i++) {
-      await createProfile(`jamais-${i}`, { city: "Lyon", available: null });
+    // 120 searchable profiles in Lyon: 70 available, 50 never set (null)
+    for (let i = 0; i < LYON_PROFILES; i++) {
+      await createProfile(`lyon-${i}`, {
+        city: "Lyon",
+        available: i < 70 ? true : null,
+      });
     }
     await createProfile("chamonix-null", {
       city: "Chamonix",
@@ -58,14 +80,30 @@ describe("GET /api/searching", () => {
       available: true,
       skills: [{ name: "zzz" }],
     });
+    picture = await strapi.entityService.create("plugin::upload.file", {
+      data: {
+        name: "portrait.webp",
+        hash: "portrait_searching",
+        ext: ".webp",
+        mime: "image/webp",
+        size: 1,
+        width: 800,
+        height: 600,
+        url: "https://r2.example.test/portrait.webp",
+        provider: "local",
+        folderPath: "/",
+      },
+    });
     // a profile with its account, which must never come out
     await createAccount("compte", {
       city: "Annecy",
       speciality: "Mariage",
       available: true,
+      skills: [{ name: "Maquillage mariage", description: "Teint et yeux" }],
+      main_picture: picture.id,
       network: { email: "compte@example.test", phone: "0611111111" },
     });
-  }, 120000);
+  }, 300000);
 
   afterAll(async () => {
     await stopStrapi();
@@ -76,48 +114,57 @@ describe("GET /api/searching", () => {
     expect(JSON.stringify(results)).not.toContain("@example.test");
   };
 
-  it("S09 - without a term: 200, 50 profiles at most, no contact details", async () => {
+  it("S09 - without a term: 200, every searchable profile, no contact details", async () => {
     const response = await search(newClient()).expect(200);
+    const usernames = response.body.map((result) => result.username);
 
-    expect(response.body).toHaveLength(50);
+    // the Lyon profiles, chamonix-null, placeholder and compte
+    expect(response.body).toHaveLength(LYON_PROFILES + 3);
+    expect(usernames).not.toContain("chamonix-off");
     expectPublicOnly(response.body);
-    expect(response.body.every((result) => result.available !== false)).toBe(
-      true
-    );
   });
 
-  it("S09 - with a term: ranked, 50 profiles at most, no contact details", async () => {
+  it("S09 - with a term: every match in one answer, no contact details", async () => {
     const response = await search(newClient(), { search: "Lyon" }).expect(200);
 
-    expect(response.body).toHaveLength(50);
-    expect(response.body[0].city).toBe("Lyon");
-    expect(typeof response.body[0].search_score).toBe("number");
+    expect(response.body).toHaveLength(LYON_PROFILES);
+    expect(response.body.every((result) => result.city === "Lyon")).toBe(true);
     expectPublicOnly(response.body);
   });
 
-  it("S09 - keeps what the search page shows", async () => {
+  it("S09 - keeps what the search page shows, nothing more", async () => {
     const response = await search(newClient(), { search: "Annecy" }).expect(
       200
     );
-    const first = response.body[0];
+    const [first] = response.body;
 
+    expect(response.body).toHaveLength(1);
+    expect(Object.keys(first).sort()).toEqual(CARD_KEYS);
     expect(first).toMatchObject({
       username: "compte",
       city: "Annecy",
       speciality: "Mariage",
       pro: false,
     });
-    expect(first.network).toEqual({
-      id: expect.any(Number),
-      instagram: null,
-      facebook: null,
-      linkedin: null,
-      website: null,
-      youtube: null,
+    expect(first.skills).toEqual([{ name: "Maquillage mariage" }]);
+    expect(first.main_picture).toEqual({
+      id: picture.id,
+      url: picture.url,
+      width: 800,
+      height: 600,
+      alternativeText: null,
     });
-    expect(first).toHaveProperty("main_picture");
-    expect(first).toHaveProperty("skills");
     expectPublicOnly(response.body);
+  });
+
+  it("S09 - a profile without picture nor skill: null and []", async () => {
+    const response = await search(newClient(), { search: "Chamonix" }).expect(
+      200
+    );
+
+    expect(Object.keys(response.body[0]).sort()).toEqual(CARD_KEYS);
+    expect(response.body[0].main_picture).toBeNull();
+    expect(response.body[0].skills).toEqual([]);
   });
 
   it.each(["zzqq", "blah", "xqzvwk"])(
@@ -138,7 +185,7 @@ describe("GET /api/searching", () => {
     expect(response.body.map((result) => result.username)).toEqual(["compte"]);
   });
 
-  it.each(["compte@example.test", "dispo-1@example.test", "0611111111"])(
+  it.each(["compte@example.test", "lyon-1@example.test", "0611111111"])(
     "S09 - the email or phone of a profile (%s) finds nothing",
     async (term) => {
       const response = await search(newClient(), { search: term }).expect(200);
@@ -175,5 +222,5 @@ describe("GET /api/searching", () => {
     await search(client, { search: "Lyon" }).expect(429);
     // another visitor is not affected
     await search(newClient(), { search: "Lyon" }).expect(200);
-  });
+  }, 60000);
 });

@@ -5,9 +5,11 @@ const { avecVillePublique } = require("../../../utils/public-city");
 
 const PROFILE_UID = "api::makeup-artiste.makeup-artiste";
 
-// Search results are public: an explicit list of fields, without the
-// account, the internal score and the email and phone (one search used to
-// return the contact details of every artist).
+// Search results are public and only fill the result cards of the search
+// page (front src/pages/search.js, and its split by place of UI-10): an
+// explicit list of fields, without the account, the internal scores and the
+// email and phone (one search used to return the contact details of every
+// artist). 50 full profiles weighed about 300 KB.
 const PUBLIC_RESULT_FIELDS = [
   "id",
   "username",
@@ -17,48 +19,38 @@ const PUBLIC_RESULT_FIELDS = [
   "speciality",
   "city",
   "action_radius",
-  "available",
   "pro",
-  "description",
-  "skills",
-  "experiences",
-  "courses",
-  "service_offers",
-  "language",
-  "main_picture",
-  "image_gallery",
-  "search_score",
 ];
-const PUBLIC_NETWORK_FIELDS = [
+const PUBLIC_PICTURE_FIELDS = [
   "id",
-  "youtube",
-  "facebook",
-  "instagram",
-  "website",
-  "linkedin",
+  "url",
+  "width",
+  "height",
+  "alternativeText",
 ];
-// Until the search page paginates (UI-07, then 20 per page)
-const MAX_PUBLIC_RESULTS = 50;
+// One answer holds every match, the front cuts it in pages of 20 (UI-07):
+// 95 searchable profiles in October 2026
+const MAX_PUBLIC_RESULTS = 200;
 // Longer terms only slow Fuse down
 const MAX_TERM_LENGTH = 100;
 
 /**
- * Keeps the public fields of a profile found by the search, with the public
- * city (« Annecy (74) », never a street: UI-11, src/utils/public-city.js).
+ * Keeps the fields of a result card of a profile found by the search, with
+ * the public city (« Annecy (74) », never a street: UI-11,
+ * src/utils/public-city.js), the skill names and the picture's scalars.
  * Called once the profiles are matched and sorted, so the search still
  * matches on the city as typed.
  * @param {object} profile
  * @returns {object}
  */
-const toPublicResult = (profile) => {
-  const result = _.pick(profile, PUBLIC_RESULT_FIELDS);
-  if (profile.network !== undefined) {
-    result.network = profile.network
-      ? _.pick(profile.network, PUBLIC_NETWORK_FIELDS)
-      : null;
-  }
-  return avecVillePublique(result);
-};
+const toPublicResult = (profile) =>
+  avecVillePublique({
+    ..._.pick(profile, PUBLIC_RESULT_FIELDS),
+    skills: (profile.skills ?? []).map((skill) => ({ name: skill.name })),
+    main_picture: profile.main_picture
+      ? _.pick(profile.main_picture, PUBLIC_PICTURE_FIELDS)
+      : null,
+  });
 
 const searchTerm = (value) =>
   typeof value === "string" ? value.trim().slice(0, MAX_TERM_LENGTH) : "";
@@ -69,34 +61,15 @@ const SEARCHABLE_FILTER = {
   $or: [{ available: { $eq: true } }, { available: { $null: true } }],
 };
 
+// What the search matches on and what a result card shows, nothing more
+// (no network: the email and phone are neither searched nor returned)
 const PROFILE_POPULATE = {
   // Media scalars only: populating the file relations ("*") also
   // returned createdBy/updatedBy, i.e. the admin users (email,
   // bcrypt hash, resetPasswordToken) behind admin uploads.
   main_picture: true,
-  skills: {
-    populate: "*",
-  },
-  experiences: {
-    populate: "*",
-  },
-  courses: {
-    populate: "*",
-  },
-  service_offers: {
-    populate: "*",
-  },
-  // public links only: the email and phone are neither searched nor returned
-  network: {
-    populate: "*",
-  },
-  language: {
-    populate: "*",
-  },
-  user: {
-    select: ["username"],
-  },
-  image_gallery: true,
+  skills: true,
+  service_offers: true,
 };
 
 const balancedKeys = [
@@ -147,7 +120,7 @@ module.exports = {
   /**
    * Public search (GET /api/searching): the ranked profiles for `search`
    * (or `city` alone), or the last updated profiles without any term,
-   * 50 at most, public fields only.
+   * MAX_PUBLIC_RESULTS at most, the fields of a result card only.
    *
    * @param {{ search?: string, city?: string }} params - Query string
    * @returns {Promise<object[]>}
@@ -179,18 +152,13 @@ module.exports = {
         throw new Error("No search parameters found");
       }
 
-      const allMakeupArtisteUsers = await strapi.entityService.findMany(
+      const allMakeupArtiste = await strapi.entityService.findMany(
         PROFILE_UID,
         {
           populate: PROFILE_POPULATE,
           filters: SEARCHABLE_FILTER,
         }
       );
-
-      const allMakeupArtiste = allMakeupArtisteUsers.map((makeupArtiste) => ({
-        ...makeupArtiste,
-        user: { username: makeupArtiste.user?.username },
-      }));
 
       if (!allMakeupArtiste) {
         throw new Error("No makeup artiste found");
@@ -457,7 +425,7 @@ module.exports = {
       // return the makeup artiste sorted by score
       let res = makeupArtisteWithScore
         .sort((a, b) => a.search_score - b.search_score)
-        .slice(0, 100);
+        .slice(0, MAX_PUBLIC_RESULTS);
 
       return res;
     } catch (err) {
