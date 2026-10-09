@@ -4,7 +4,8 @@
 // account). URG-11: what the removed Cypress specs checked against the
 // production API (front cypress/e2e/auth, removed by front #956), on the
 // in-process Strapi only: the profile created at the onboarding, the exact
-// bodies the profile modals send, the length limits and the reset.
+// bodies the profile modals send, the length limits, the bounds of the
+// action radius and the reset.
 const fs = require("fs");
 const path = require("path");
 const _ = require("lodash");
@@ -771,6 +772,43 @@ describe("/api/me-makeup", () => {
           );
         }
       );
+
+      // The location modal caps the radius at 10 characters, not at a
+      // number, and sends it as typed. Without a bound in the content type,
+      // SQLite stored 9999999999 while Postgres refused it with the SQL text
+      // of the update in moreDetails: both now refuse with the same message.
+      it.each([
+        ["9999999999", "less than or equal to 2147483647"],
+        ["2147483648", "less than or equal to 2147483647"],
+        ["-5", "greater than or equal to 0"],
+      ])(
+        "URG-11 - PATCH refuses an action radius of %s and changes nothing",
+        async (radius, rule) => {
+          const before = await storedSections(artist);
+
+          const refused = await as(artist, "patch", {
+            city: "Lyon",
+            action_radius: radius,
+          }).expect(400);
+
+          expect(refused.body.error.details.moreDetails).toBe(
+            `action_radius must be ${rule}`
+          );
+          expect(await storedSections(artist)).toEqual(before);
+        }
+      );
+
+      it("URG-11 - PATCH stores the action radius bounds, 0 and 2147483647", async () => {
+        for (const radius of ["0", "2147483647"]) {
+          await as(artist, "patch", {
+            city: "Grenoble",
+            action_radius: radius,
+          }).expect(200);
+          const stored = await storedSections(artist);
+          expect(stored.city).toBe("Grenoble");
+          expect(stored.action_radius).toBe(Number(radius));
+        }
+      });
     });
 
     it("URG-11 - an experience start date sent as '' is refused and changes nothing, null is stored", async () => {

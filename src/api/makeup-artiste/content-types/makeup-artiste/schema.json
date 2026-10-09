@@ -33,7 +33,9 @@
       "maxLength": 70
     },
     "action_radius": {
-      "type": "integer"
+      "type": "integer",
+      "min": 0,
+      "max": 2147483647
     },
     "score": {
       "type": "decimal"
