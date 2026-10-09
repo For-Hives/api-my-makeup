@@ -16,6 +16,7 @@
  * - log (also for any unknown value, so that a typo deletes nothing): logs
  *   the count and the ids of the eligible files, deletes nothing;
  * - off: nothing.
+ * MEDIA_REMOVAL=log (src/utils/media-files.js) keeps every file as well.
  */
 
 const {
@@ -121,7 +122,7 @@ const sweepOrphanMedia = async (
       return result;
     }
 
-    const { removed, failed } = await removeUnusedFiles(
+    const { removed, failed, logged } = await removeUnusedFiles(
       strapi,
       batch,
       "media sweep"
@@ -133,6 +134,10 @@ const sweepOrphanMedia = async (
         result.eligible.length
       } orphan upload(s) older than 24 h (at most ${limit} per run)${
         failed.length > 0 ? `, failed: ${failed.join(", ")}` : ""
+      }${
+        logged.length > 0
+          ? `, kept by MEDIA_REMOVAL=log: ${logged.join(", ")}`
+          : ""
       }`
     );
   } catch (error) {

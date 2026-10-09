@@ -119,6 +119,17 @@ sent before this column existed, have it empty.
   Files with an empty `uploaded_by` are never swept. `CRON_ENABLED=false`
   turns off every scheduled task.
 
+- `MEDIA_REMOVAL=log` stops every deletion above (replaced pictures,
+  deleted accounts, sweep) without a redeploy, for instance if a front
+  change starts dropping pictures: the API logs
+  `[media] <reason>: MEDIA_REMOVAL=log, would remove N file(s): <ids>` and
+  keeps the files. Unset or `delete` deletes; any other value is `log`.
+  Back to `delete`, the files with `uploaded_by` set that are still unused
+  go to the next sweep: put back on her profile, from the admin, any that
+  should stay.
+- R2 has no backup and Cloudflare caches the public pictures for up to 4 h:
+  a deleted picture may still answer from the cache for a few hours.
+
 ### Docker Environment Variables
 
 | Variable                   | Description                                                                                          |
@@ -148,6 +159,7 @@ sent before this column existed, have it empty.
 | `DOCUMENTATION_ENABLED`    | `true` serves `/documentation` outside development                                                   |
 | `PERMISSIONS_SYNC`         | `false` skips applying `config/permissions.js` at start                                              |
 | `MEDIA_SWEEP`              | Daily sweep of unused artist uploads: `delete` (default), `log` or `off`                             |
+| `MEDIA_REMOVAL`            | `log` stops every picture deletion and only logs it; `delete` (default) deletes                      |
 | `CRON_ENABLED`             | `false` turns off the scheduled tasks (the media sweep)                                              |
 
 ## 🧪 Tests

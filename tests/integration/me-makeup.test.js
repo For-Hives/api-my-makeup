@@ -708,6 +708,35 @@ describe("/api/me-makeup", () => {
       await expectKept(after);
     });
 
+    it("UI-03 - with MEDIA_REMOVAL=log, a replaced picture is only logged", async () => {
+      const artist = await createAccount("pictures-removal-log", {
+        first_name: "Photo",
+      });
+      const before = await upload(artist);
+      await as(artist, "patch", { main_picture: before.id }).expect(200);
+      const after = await upload(artist);
+      const warn = jest.spyOn(strapi.log, "warn");
+      const saved = process.env.MEDIA_REMOVAL;
+      process.env.MEDIA_REMOVAL = "log";
+
+      try {
+        await as(artist, "patch", { main_picture: after.id }).expect(200);
+        expect(warn).toHaveBeenCalledWith(
+          `[media] replaced picture: MEDIA_REMOVAL=log, would remove 1 file(s): ${before.id}`
+        );
+      } finally {
+        warn.mockRestore();
+        if (saved === undefined) {
+          delete process.env.MEDIA_REMOVAL;
+        } else {
+          process.env.MEDIA_REMOVAL = saved;
+        }
+      }
+
+      expect((await storedMedia(artist)).main).toBe(after.id);
+      await expectKept(before);
+    });
+
     it("UI-03 - a removal of 300 ms is over when the PATCH answers", async () => {
       const artist = await createAccount("pictures-wait", {
         first_name: "Photo",

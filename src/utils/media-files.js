@@ -109,6 +109,27 @@ const storageFile = (file, { provider, providerOptions } = {}) => {
 };
 
 /**
+ * Reads MEDIA_REMOVAL, the switch of every file deletion (replaced or
+ * removed pictures, deleted accounts, upload guard, media sweep):
+ * - delete (default): files are deleted;
+ * - log: nothing is deleted, the files that would be are logged. Any other
+ *   value is log too, so that a typo in an emergency deletes nothing.
+ *
+ * @param {string|undefined} value
+ * @returns {{ mode: string, unknown: boolean }}
+ */
+const removalMode = (value) => {
+  const mode = String(value ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (mode === "" || mode === "delete") {
+    return { mode: "delete", unknown: false };
+  }
+  return { mode: "log", unknown: mode !== "log" };
+};
+
+/**
  * Files that could not be removed: the media sweep retries those with
  * uploaded_by set. A file sent before that column (uploaded_by null) gets
  * `ownerId` when given, the artist whose picture it was; any file still
@@ -160,17 +181,19 @@ const leaveForSweep = async (strapi, ids, reason, ownerId) => {
  * (R2 in production), through the upload plugin. A file still used by an
  * entry is kept. A failure is logged with the file id and never thrown:
  * callers run after their own change succeeded. A file that could not be
- * removed is left for the media sweep (see leaveForSweep).
+ * removed is left for the media sweep (see leaveForSweep). With
+ * MEDIA_REMOVAL=log, nothing is removed: the unused files are only logged.
  *
  * @param {object} strapi
  * @param {number[]} ids
  * @param {string} reason - Short label for the logs
  * @param {{ ownerId?: number }} [options] - ownerId: the artist whose
  *   pictures these were, given to a failed file sent before uploaded_by
- * @returns {Promise<{ removed: number[], kept: number[], failed: number[] }>}
+ * @returns {Promise<{ removed: number[], kept: number[], failed: number[],
+ *   logged: number[] }>} logged: unused files kept by MEDIA_REMOVAL=log
  */
 const removeUnusedFiles = async (strapi, ids, reason, { ownerId } = {}) => {
-  const result = { removed: [], kept: [], failed: [] };
+  const result = { removed: [], kept: [], failed: [], logged: [] };
   const candidates = uniqueIds(ids);
 
   if (candidates.length === 0) {
@@ -192,6 +215,25 @@ const removeUnusedFiles = async (strapi, ids, reason, { ownerId } = {}) => {
     );
     await leaveForSweep(strapi, candidates, reason, ownerId);
     return { ...result, failed: candidates };
+  }
+
+  const { mode, unknown } = removalMode(process.env.MEDIA_REMOVAL);
+  if (mode === "log") {
+    result.kept = candidates.filter((id) => referenced.has(id));
+    result.logged = candidates.filter((id) => !referenced.has(id));
+    if (unknown) {
+      strapi.log.warn(
+        "[media] unknown MEDIA_REMOVAL value, nothing deleted (delete or log)"
+      );
+    }
+    if (result.logged.length > 0) {
+      strapi.log.warn(
+        `[media] ${reason}: MEDIA_REMOVAL=log, would remove ${
+          result.logged.length
+        } file(s): ${result.logged.join(", ")}`
+      );
+    }
+    return result;
   }
 
   for (const id of candidates) {
@@ -276,6 +318,7 @@ module.exports = {
   hideUploader,
   mediaIds,
   referencedFileIds,
+  removalMode,
   removeUnusedFiles,
   storageFile,
   uniqueIds,

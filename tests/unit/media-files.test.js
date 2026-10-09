@@ -3,6 +3,7 @@
 const { describe, it, expect, afterEach } = require("@jest/globals");
 const {
   mediaIds,
+  removalMode,
   storageFile,
   waitAtMost,
 } = require("../../src/utils/media-files");
@@ -112,6 +113,17 @@ describe("mediaIds", () => {
     expect(
       mediaIds({ id: 3 }, [{ id: 4 }, { id: 3 }], null, undefined, [])
     ).toEqual([3, 4]);
+  });
+});
+
+describe("removalMode", () => {
+  it("reads MEDIA_REMOVAL: delete by default, log for log and anything else", () => {
+    expect(removalMode(undefined)).toEqual({ mode: "delete", unknown: false });
+    expect(removalMode("")).toEqual({ mode: "delete", unknown: false });
+    expect(removalMode(" Delete ")).toEqual({ mode: "delete", unknown: false });
+    expect(removalMode("log")).toEqual({ mode: "log", unknown: false });
+    expect(removalMode("off")).toEqual({ mode: "log", unknown: true });
+    expect(removalMode("false")).toEqual({ mode: "log", unknown: true });
   });
 });
 

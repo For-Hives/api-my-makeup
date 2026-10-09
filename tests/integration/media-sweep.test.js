@@ -34,6 +34,7 @@ describe("media sweep", () => {
   let other;
   let seed = 0;
   const savedMode = process.env.MEDIA_SWEEP;
+  const savedRemoval = process.env.MEDIA_REMOVAL;
 
   const upload = async (account) =>
     uploadPicture(account.jwt, await picture(++seed));
@@ -151,6 +152,11 @@ describe("media sweep", () => {
     } else {
       process.env.MEDIA_SWEEP = savedMode;
     }
+    if (savedRemoval === undefined) {
+      delete process.env.MEDIA_REMOVAL;
+    } else {
+      process.env.MEDIA_REMOVAL = savedRemoval;
+    }
   });
 
   afterAll(async () => {
@@ -255,6 +261,24 @@ describe("media sweep", () => {
     expect(lines()).toEqual([
       "[media-sweep] off (MEDIA_SWEEP=off): nothing checked",
     ]);
+  });
+
+  it("MEDIA_REMOVAL=log keeps every file, even with MEDIA_SWEEP=delete", async () => {
+    process.env.MEDIA_SWEEP = "delete";
+    process.env.MEDIA_REMOVAL = "log";
+    const lines = logs();
+
+    const result = await sweepOrphanMedia(strapi);
+
+    expect(result.mode).toBe("delete");
+    expect(result.removed).toEqual([]);
+    expect(lines()).toEqual([
+      `[media-sweep] removed 0 of 2 orphan upload(s) older than 24 h (at most 50 per run), kept by MEDIA_REMOVAL=log: ${oldOrphan.id}, ${othersOldOrphan.id}`,
+    ]);
+    for (const file of [oldOrphan, othersOldOrphan]) {
+      expect(await exists(file)).toBe(true);
+      expect(onDisk(file)).toBe(true);
+    }
   });
 
   it("without MEDIA_SWEEP, removes only the unused artist uploads older than 24 h", async () => {
