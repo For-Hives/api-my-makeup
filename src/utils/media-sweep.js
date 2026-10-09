@@ -11,10 +11,12 @@
  * the admin's media, article and talent pictures) are never touched.
  *
  * MEDIA_SWEEP chooses what a run does:
- * - delete (default): removes at most MAX_REMOVALS_PER_RUN eligible files,
- *   database row and stored object (R2 in production);
- * - log (also for any unknown value, so that a typo deletes nothing): logs
- *   the count and the ids of the eligible files, deletes nothing;
+ * - log (default, and for any unknown value, so that a typo deletes
+ *   nothing): logs the count and the ids of the eligible files, deletes
+ *   nothing; production starts here, and turns delete on once the logs of a
+ *   few runs show only files that should go;
+ * - delete: removes at most MAX_REMOVALS_PER_RUN eligible files, database
+ *   row and stored object (R2 in production);
  * - off: nothing.
  * MEDIA_REMOVAL=log (src/utils/media-files.js) keeps every file as well.
  */
@@ -26,7 +28,7 @@ const {
 } = require("./media-files");
 
 const SWEEP_MODES = ["off", "log", "delete"];
-const DEFAULT_SWEEP_MODE = "delete";
+const DEFAULT_SWEEP_MODE = "log";
 const MIN_AGE_MS = 24 * 60 * 60 * 1000;
 const MAX_REMOVALS_PER_RUN = 50;
 

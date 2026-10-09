@@ -1,7 +1,8 @@
 // UI-03: the daily sweep of the pictures sent from the artist space and
-// never put on a profile. MEDIA_SWEEP=delete (the default) removes the files
-// with uploaded_by set, used by nothing and older than 24 h, and never a
-// file with uploaded_by null; log only logs. Local provider: never R2.
+// never put on a profile. MEDIA_SWEEP=delete removes the files with
+// uploaded_by set, used by nothing and older than 24 h, and never a file
+// with uploaded_by null; log, the default, only logs. Local provider: never
+// R2.
 const fs = require("fs");
 const path = require("path");
 const {
@@ -173,9 +174,9 @@ describe("media sweep", () => {
     expect((await fileRow(oldOrphan)).uploaded_by).toBe(artist.user.id);
   });
 
-  it("reads MEDIA_SWEEP: off, log or delete, delete by default, log for anything else", () => {
-    expect(sweepMode(undefined)).toEqual({ mode: "delete", unknown: false });
-    expect(sweepMode("")).toEqual({ mode: "delete", unknown: false });
+  it("reads MEDIA_SWEEP: off, log or delete, log by default and for anything else", () => {
+    expect(sweepMode(undefined)).toEqual({ mode: "log", unknown: false });
+    expect(sweepMode("")).toEqual({ mode: "log", unknown: false });
     expect(sweepMode("off")).toEqual({ mode: "off", unknown: false });
     expect(sweepMode(" DELETE ")).toEqual({ mode: "delete", unknown: false });
     expect(sweepMode("log")).toEqual({ mode: "log", unknown: false });
@@ -281,8 +282,22 @@ describe("media sweep", () => {
     }
   });
 
-  it("without MEDIA_SWEEP, removes only the unused artist uploads older than 24 h", async () => {
+  it("without MEDIA_SWEEP, a run only logs: nothing is deleted", async () => {
     delete process.env.MEDIA_SWEEP;
+
+    const result = await sweepOrphanMedia(strapi);
+
+    expect(result.mode).toBe("log");
+    expect(result.eligible).toEqual([oldOrphan.id, othersOldOrphan.id]);
+    expect(result.removed).toEqual([]);
+    for (const file of [oldOrphan, othersOldOrphan]) {
+      expect(await exists(file)).toBe(true);
+      expect(onDisk(file)).toBe(true);
+    }
+  });
+
+  it("MEDIA_SWEEP=delete removes only the unused artist uploads older than 24 h", async () => {
+    process.env.MEDIA_SWEEP = "delete";
     const lines = logs();
 
     const result = await sweepOrphanMedia(strapi);

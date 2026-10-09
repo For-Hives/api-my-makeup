@@ -110,10 +110,11 @@ sent before this column existed, have it empty.
   on her profile: `uploaded_by` set, used by nothing, older than 24 h
   (`src/utils/media-sweep.js`). `MEDIA_SWEEP` chooses what it does:
 
-  - `delete` (default): deletes at most 50 of them per run and logs
+  - `log` (default, and for any unknown value): logs the count and the ids
+    of these files, deletes nothing. Production starts there: read the
+    `[media-sweep]` lines of a few runs, then set `MEDIA_SWEEP=delete`;
+  - `delete`: deletes at most 50 of them per run and logs
     `[media-sweep] removed N`;
-  - `log` (also for any unknown value): logs the count and the ids of these
-    files, deletes nothing;
   - `off`: does nothing.
 
   Files with an empty `uploaded_by` are never swept. `CRON_ENABLED=false`
@@ -158,7 +159,7 @@ sent before this column existed, have it empty.
 | `EMAIL_SETTINGS_SYNC`      | `false` skips writing the email settings at start                                                    |
 | `DOCUMENTATION_ENABLED`    | `true` serves `/documentation` outside development                                                   |
 | `PERMISSIONS_SYNC`         | `false` skips applying `config/permissions.js` at start                                              |
-| `MEDIA_SWEEP`              | Daily sweep of unused artist uploads: `delete` (default), `log` or `off`                             |
+| `MEDIA_SWEEP`              | Daily sweep of unused artist uploads: `log` (default), `delete` or `off`                             |
 | `MEDIA_REMOVAL`            | `log` stops every picture deletion and only logs it; `delete` (default) deletes                      |
 | `CRON_ENABLED`             | `false` turns off the scheduled tasks (the media sweep)                                              |
 
