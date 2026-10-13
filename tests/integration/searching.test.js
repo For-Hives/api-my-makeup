@@ -3,8 +3,10 @@
 // of a result card only (no contact details, account or score), finds the
 // profiles that match every word (accents ignored, one typo per 5 letters)
 // and nothing for an unknown term, an email, a phone or a street (UI-07,
-// UI-11), lets the city rank but never add a profile, and brakes at 60
-// requests per minute per client address.
+// UI-11), lets the city rank but never add a profile, never lists an entirely
+// empty profile (none of the six conditions of a publishable profile,
+// src/utils/profile-conditions.js) and brakes at 60 requests per minute per
+// client address.
 const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 const { setupStrapi, stopStrapi } = require("../helpers/strapi");
 const { http, createAccount, findKeys } = require("../helpers/fixtures");
@@ -33,6 +35,34 @@ const LYON_PROFILES = 120;
 // chamonix-null, placeholder, lilas, offres and compte
 const OTHER_SEARCHABLE = 5;
 
+// The last name of the profiles that hold none or one of the six conditions
+// of a publishable profile, and of them only
+const BARE_LAST_NAME = "Quetzal";
+// Exactly `length` characters, none of the words searched below
+const descriptionOf = (length) =>
+  `${"Seance sur rendez-vous, conseils offerts. "
+    .repeat(8)
+    .slice(0, length - 1)}.`;
+// One condition each, in the order they are created; the picture is the one
+// of beforeAll
+const ONE_CONDITION = {
+  "only-price": () => ({
+    service_offers: [{ name: "Forfait", price: "à partir de 80 €" }],
+  }),
+  "only-description": () => ({ description: descriptionOf(200) }),
+  "only-picture": (picture) => ({ main_picture: picture.id }),
+  // a channel the lists never return
+  "only-contact": () => ({
+    network: { email: "only-contact@example.test", phone: "0622222222" },
+  }),
+  "only-city": () => ({ city: "Bayonne" }),
+  "only-speciality": () => ({ speciality: "Cinema" }),
+};
+const ONE_CONDITION_USERNAMES = Object.keys(ONE_CONDITION);
+// Entirely empty: a name and nothing else, as the profiles left by sign-up
+// spam, and a profile just under each of the six conditions
+const ENTIRELY_EMPTY = ["empty", "almost"];
+
 let nextAddress = 1;
 // each test searches from its own client address (proxy: true)
 const newClient = () => `198.51.100.${nextAddress++}`;
@@ -56,6 +86,24 @@ const createProfile = (username, data) =>
       ...data,
     },
   });
+
+// A searchable profile with a name and none of the six conditions
+const createBareProfile = (username, data) =>
+  strapi.entityService.create(PROFILE_UID, {
+    data: {
+      username,
+      first_name: "Prenom",
+      last_name: BARE_LAST_NAME,
+      available: true,
+      ...data,
+    },
+  });
+
+const usernamesOf = (response) =>
+  response.body.map((result) => result.username);
+
+const emptyProfilesIn = (response) =>
+  usernamesOf(response).filter((username) => ENTIRELY_EMPTY.includes(username));
 
 describe("GET /api/searching", () => {
   let picture;
@@ -128,6 +176,29 @@ describe("GET /api/searching", () => {
       main_picture: picture.id,
       network: { email: "compte@example.test", phone: "0611111111" },
     });
+    await createBareProfile("empty");
+    await createBareProfile("almost", {
+      company_artist_name: "Studio Quetzal",
+      action_radius: 30,
+      pro: true,
+      speciality: " ",
+      // a country is no usable city
+      city: "France",
+      description: descriptionOf(199),
+      // a gallery is no main picture
+      image_gallery: [picture.id],
+      skills: [{ name: "Teint", description: "Unifier" }],
+      // no price between 5 and 10 000
+      service_offers: [
+        { name: "Forfait", description: "Sur mesure", price: "Sur devis" },
+        { name: "Retouche", price: "2" },
+        { name: "Tournage", price: "12 000 €" },
+      ],
+      network: { instagram: " ", email: "" },
+    });
+    for (const [username, data] of Object.entries(ONE_CONDITION)) {
+      await createBareProfile(username, data(picture));
+    }
   }, 300000);
 
   afterAll(async () => {
@@ -135,15 +206,21 @@ describe("GET /api/searching", () => {
   });
 
   const expectPublicOnly = (results) => {
-    expect(findKeys(results, ["email", "phone", "user", "score"])).toEqual([]);
+    expect(
+      findKeys(results, ["email", "phone", "network", "user", "score"])
+    ).toEqual([]);
     expect(JSON.stringify(results)).not.toContain("@example.test");
+    // the phones of the profiles above
+    expect(JSON.stringify(results)).not.toMatch(/06\d{8}/);
   };
 
   it("S09 - without a term: 200, every searchable profile, no contact details", async () => {
     const response = await search(newClient()).expect(200);
     const usernames = response.body.map((result) => result.username);
 
-    expect(response.body).toHaveLength(LYON_PROFILES + OTHER_SEARCHABLE);
+    expect(response.body).toHaveLength(
+      LYON_PROFILES + OTHER_SEARCHABLE + ONE_CONDITION_USERNAMES.length
+    );
     expect(usernames).not.toContain("chamonix-off");
     expectPublicOnly(response.body);
   });
@@ -323,6 +400,70 @@ describe("GET /api/searching", () => {
 
     expect(response.body[0].username).toBe("chamonix-null");
   });
+
+  it("S09 - an entirely empty profile is not in the directory", async () => {
+    const response = await search(newClient()).expect(200);
+
+    expect(emptyProfilesIn(response)).toEqual([]);
+    // every card with the keys of a card, and nothing of the network read
+    // to tell the empty profiles
+    expect(
+      new Set(response.body.map((card) => Object.keys(card).sort().join()))
+    ).toEqual(new Set([CARD_KEYS.join()]));
+    expectPublicOnly(response.body);
+  });
+
+  it("S09 - an entirely empty profile is not found by its name, with or without a city", async () => {
+    // the eight profiles hold the name: the six with one condition are
+    // found, in the order of their ids (same score)
+    for (const query of [
+      { search: BARE_LAST_NAME },
+      { search: `Prenom ${BARE_LAST_NAME}` },
+      { search: BARE_LAST_NAME, city: "Lyon" },
+      { search: BARE_LAST_NAME, city: "France" },
+    ]) {
+      const response = await search(newClient(), query).expect(200);
+
+      expect(emptyProfilesIn(response)).toEqual([]);
+      expect(usernamesOf(response)).toHaveLength(
+        ONE_CONDITION_USERNAMES.length
+      );
+      expectPublicOnly(response.body);
+    }
+    const byName = await search(newClient(), {
+      search: BARE_LAST_NAME,
+    }).expect(200);
+    expect(usernamesOf(byName)).toEqual(ONE_CONDITION_USERNAMES);
+
+    // nor by what it holds: its city, alone or as the term, its skill, its
+    // service offer
+    for (const query of [
+      { city: "France" },
+      { search: "France" },
+      { search: "Unifier" },
+      { search: "Sur mesure" },
+    ]) {
+      await search(newClient(), query).expect(200).expect([]);
+    }
+  });
+
+  it.each(ONE_CONDITION_USERNAMES)(
+    "S09 - a profile with one condition of the six (%s) stays listed",
+    async (username) => {
+      const directory = await search(newClient()).expect(200);
+      expect(usernamesOf(directory)).toContain(username);
+
+      const byName = await search(newClient(), {
+        search: BARE_LAST_NAME,
+      }).expect(200);
+      const card = byName.body.find((result) => result.username === username);
+      expect(Object.keys(card).sort()).toEqual(CARD_KEYS);
+      expect(card).toMatchObject({
+        first_name: "Prenom",
+        last_name: BARE_LAST_NAME,
+      });
+    }
+  );
 
   it("S09 - the 61st search of the minute from one address gets a 429", async () => {
     const client = newClient();
