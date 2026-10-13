@@ -1,5 +1,6 @@
 const {
   searchingMakeup,
+  searchPublicMakeup,
 } = require("../../../src/api/searching/services/searching");
 const { describe, expect, it, beforeAll, afterAll } = require("@jest/globals");
 const fs = require("fs");
@@ -190,12 +191,98 @@ describe("test du service searching", () => {
       const makeupArtiste = await searchingMakeup({ search: "mariage" });
       expect(makeupArtiste.map((profile) => profile.id)).toEqual([7]);
     });
+
+    it("should leave out an entirely empty profile and never return the network", async () => {
+      // a name and nothing else, as the profiles left by sign-up spam
+      const empty = {
+        id: 9,
+        username: "vide",
+        last_name: "Quetzal",
+        first_name: "Lou",
+        speciality: null,
+        city: null,
+        available: true,
+        description: null,
+        main_picture: null,
+        skills: [],
+        service_offers: [],
+        network: { id: 20, instagram: null, phone: null, email: null },
+      };
+      // the same with a phone: a contact channel, one condition of the six
+      const reachable = {
+        ...empty,
+        id: 10,
+        username: "joignable",
+        network: { id: 21, instagram: null, phone: "0600000002", email: null },
+      };
+      strapi.entityService = {
+        findMany: jest
+          .fn()
+          .mockResolvedValue([...allMakeupArtiste, empty, reachable]),
+      };
+
+      const byName = await searchingMakeup({ search: "Quetzal" });
+      expect(byName.map((profile) => profile.id)).toEqual([10]);
+
+      // sarah.dx holds a network too
+      const everyone = await searchingMakeup({ search: "mains" });
+      expect(everyone).toHaveLength(allMakeupArtiste.length);
+      for (const profiles of [byName, everyone]) {
+        expect(profiles.filter((profile) => "network" in profile)).toEqual([]);
+        // the email of sarah.dx, her phone and the one of joignable
+        expect(JSON.stringify(profiles)).not.toMatch(
+          /@example\.test|060000000[12]/
+        );
+      }
+    });
+  });
+
+  describe("test de la function searchPublicMakeup", () => {
+    it("should count the 200 cards after the entirely empty profiles are left out", async () => {
+      // 300 searchable profiles, one in five entirely empty: 240 to list,
+      // 160 only among the first 200
+      const profiles = Array.from({ length: 300 }, (_, index) => ({
+        id: index + 1,
+        username: `profil-${index + 1}`,
+        first_name: "Prenom",
+        speciality: null,
+        city: null,
+        description: null,
+        main_picture: null,
+        skills: [],
+        service_offers: [],
+        network: {
+          id: index + 1,
+          email: index % 5 ? `profil-${index + 1}@example.test` : null,
+        },
+      }));
+      const listed = profiles
+        .filter((profile) => profile.network.email)
+        .map((profile) => profile.id)
+        .slice(0, 200);
+      expect(listed).toHaveLength(200);
+      const findMany = jest.fn().mockResolvedValue(profiles);
+      strapi.entityService = { findMany };
+
+      for (const params of [{}, { search: "Prenom" }]) {
+        const cards = await searchPublicMakeup(params);
+
+        expect(cards.map((card) => card.id)).toEqual(listed);
+        expect(JSON.stringify(cards)).not.toContain("@example.test");
+      }
+      // the directory reads every searchable profile: a limit in the query
+      // would count the empty ones
+      expect(findMany.mock.calls.map(([, query]) => query.limit)).toEqual([
+        undefined,
+        undefined,
+      ]);
+    });
   });
 });
 
-// What searchingMakeup loads (PROFILE_POPULATE: skills and service offers,
-// no picture here), and one network block to show it is never searched.
-// Fictional values only.
+// What searchingMakeup loads (PROFILE_POPULATE: skills, service offers and
+// the network, no picture here); one network block shows it is neither
+// searched nor returned. Fictional values only.
 const skills = (firstId, description = null) => [
   { id: firstId, name: "mains", description: null },
   { id: firstId + 1, name: "les pieds", description },

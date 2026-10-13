@@ -5,6 +5,7 @@ const {
   avecVillePublique,
   villePublique,
 } = require("../../../utils/public-city");
+const { isEntirelyEmpty } = require("../../../utils/profile-conditions");
 
 const PROFILE_UID = "api::makeup-artiste.makeup-artiste";
 
@@ -62,8 +63,8 @@ const SEARCHABLE_FILTER = {
   $or: [{ available: { $eq: true } }, { available: { $null: true } }],
 };
 
-// What the search matches on and what a result card shows, nothing more
-// (no network: the email and phone are neither searched nor returned)
+// What the search matches on, what a result card shows and what tells an
+// entirely empty profile from the others, nothing more
 const PROFILE_POPULATE = {
   // Media scalars only: populating the file relations ("*") also
   // returned createdBy/updatedBy, i.e. the admin users (email,
@@ -71,6 +72,33 @@ const PROFILE_POPULATE = {
   main_picture: true,
   skills: true,
   service_offers: true,
+  // Read to know whether the profile has a contact channel, dropped right
+  // after (findListedProfiles): the email and phone are neither searched nor
+  // returned
+  network: true,
+};
+
+/**
+ * The profiles the search may list: searchable, and not entirely empty,
+ * i.e. with one at least of the six conditions of a publishable profile
+ * (src/utils/profile-conditions.js). A profile without any of them gave an
+ * empty result card: 13 were left by sign-up spam in October 2026. The
+ * profiles kept stay in the order of the query, without their network.
+ *
+ * @param {object} [query] - sort of the entity service query; no limit, the
+ * empty profiles are left out before the results are counted
+ * @returns {Promise<object[]|undefined>}
+ */
+const findListedProfiles = async (query = {}) => {
+  const profiles = await strapi.entityService.findMany(PROFILE_UID, {
+    ...query,
+    populate: PROFILE_POPULATE,
+    filters: SEARCHABLE_FILTER,
+  });
+
+  return profiles
+    ?.filter((profile) => !isEntirelyEmpty(profile))
+    .map((profile) => _.omit(profile, "network"));
 };
 
 // Accents are removed from the profiles and from the term: fuse.js 6 does not
@@ -205,7 +233,8 @@ module.exports = {
   /**
    * Public search (GET /api/searching): the ranked profiles for `search`
    * (or `city` alone), or the last updated profiles without any term,
-   * MAX_PUBLIC_RESULTS at most, the fields of a result card only.
+   * MAX_PUBLIC_RESULTS at most, the fields of a result card only. Never an
+   * entirely empty profile (findListedProfiles).
    *
    * @param {{ search?: string, city?: string }} params - Query string
    * @returns {Promise<object[]>}
@@ -219,12 +248,9 @@ module.exports = {
           search,
           ...(city && { city }),
         })
-      : await strapi.entityService.findMany(PROFILE_UID, {
-          populate: PROFILE_POPULATE,
-          filters: SEARCHABLE_FILTER,
-          sort: { updatedAt: "desc" },
-          limit: MAX_PUBLIC_RESULTS,
-        });
+      : // every listed profile is read: a limit in the query would count the
+        // entirely empty ones among the MAX_PUBLIC_RESULTS
+        await findListedProfiles({ sort: { updatedAt: "desc" } });
 
     return profiles.slice(0, MAX_PUBLIC_RESULTS).map(toPublicResult);
   },
@@ -232,14 +258,15 @@ module.exports = {
   toPublicResult,
 
   /**
-   * The searchable profiles that match every word of `search` (each word
-   * in at least one key), best first. Each word adds, for each key, the
-   * Fuse score of its match (0 is exact) or the key's weight when it does
-   * not match. A `city` other than the term only ranks: it never adds a
-   * profile the term did not find (UI-07, UI-10).
+   * The listed profiles (searchable, not entirely empty) that match every
+   * word of `search` (each word in at least one key), best first. Each word
+   * adds, for each key, the Fuse score of its match (0 is exact) or the
+   * key's weight when it does not match. A `city` other than the term only
+   * ranks: it never adds a profile the term did not find (UI-07, UI-10).
    *
    * @param {{ search: string, city?: string }} params
-   * @returns {Promise<object[]>} the profiles, with their search_score
+   * @returns {Promise<object[]>} the profiles, with their search_score and
+   * without their network
    */
   searchingMakeup: async (params) => {
     try {
@@ -251,13 +278,7 @@ module.exports = {
         throw new Error("No search parameters found");
       }
 
-      const allMakeupArtiste = await strapi.entityService.findMany(
-        PROFILE_UID,
-        {
-          populate: PROFILE_POPULATE,
-          filters: SEARCHABLE_FILTER,
-        }
-      );
+      const allMakeupArtiste = await findListedProfiles();
 
       if (!allMakeupArtiste) {
         throw new Error("No makeup artiste found");
