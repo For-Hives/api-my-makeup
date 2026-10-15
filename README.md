@@ -159,6 +159,7 @@ sent before this column existed, have it empty.
 | `EMAIL_SETTINGS_SYNC`      | `false` skips writing the email settings at start                                                    |
 | `DOCUMENTATION_ENABLED`    | `true` serves `/documentation` outside development                                                   |
 | `PERMISSIONS_SYNC`         | `false` skips applying `config/permissions.js` at start                                              |
+| `LEGACY_READ_ONLY`         | `true` freezes the API for the switch to the new site: reads, search and sign-in stay, every write, registration, password reset and upload answers 403 (`src/utils/read-only.js`). Unset it and restart to undo. Ignores `PERMISSIONS_SYNC=false` |
 | `MEDIA_SWEEP`              | Daily sweep of unused artist uploads: `log` (default), `delete` or `off`                             |
 | `MEDIA_REMOVAL`            | `log` stops every picture deletion and only logs it; `delete` (default) deletes                      |
 | `CRON_ENABLED`             | `false` turns off the scheduled tasks (the media sweep)                                              |
