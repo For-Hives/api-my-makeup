@@ -1,11 +1,11 @@
 # Node 20 only: @strapi/pack-up 4.23.0 (pulled in by Strapi 4.26.2) refuses
-# Node 22. Keep in sync with .nvmrc and engines.node in package.json.
+# Node 24. Keep in sync with .nvmrc and engines.node in package.json.
 # sharp 0.35 (upload plugin) needs Node >= 20.9 and an x86-64-v2 or arm64
 # host CPU: its prebuilt linux-x64 binary refuses older CPUs, and the API
 # would not boot there.
 
 # --- Production dependencies, installed from the committed lockfile ---
-FROM docker.io/library/node:20-bookworm-slim AS deps
+FROM docker.io/library/node:24.22.1-bookworm-slim AS deps
 
 WORKDIR /app
 
@@ -32,7 +32,7 @@ RUN yarn build \
 # safeguard.
 # Directories are created in the build stage, ownership is set by
 # COPY --chown.
-FROM docker.io/library/node:20-bookworm-slim AS run
+FROM docker.io/library/node:24.22.1-bookworm-slim AS run
 
 # No DATABASE_* (nor any other secret) in the image: Coolify gives them to
 # the container at run time only, and its build args are off for this app
