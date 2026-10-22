@@ -5,6 +5,7 @@
  */
 
 const { FILE_NOT_ALLOWED } = require("../services/me-makeup");
+const { isReadOnly } = require("../../../utils/read-only");
 
 module.exports = {
   async initMakeup(ctx, next) {
@@ -50,6 +51,11 @@ module.exports = {
         .service("api::makeup-artiste.me-makeup")
         .meMakeupArtist(ctx.state.user);
 
+      // Read by the artist space (server side) to show the maintenance
+      // message: the API alone tells whether it is frozen
+      if (isReadOnly(process.env)) {
+        ctx.set("X-Read-Only", "true");
+      }
       ctx.body = data;
     } catch (err) {
       console.log(err);

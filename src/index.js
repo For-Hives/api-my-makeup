@@ -7,6 +7,11 @@ const {
   wantedEmailSettings,
 } = require("./utils/email-settings");
 const { syncRolePermissions } = require("./utils/permissions");
+const {
+  isReadOnly,
+  readOnlyPermissions,
+  subscribeReadOnly,
+} = require("./utils/read-only");
 const { subscribeRetiredProviders } = require("./utils/retired-providers");
 
 module.exports = {
@@ -44,8 +49,24 @@ module.exports = {
     // Former Facebook accounts sign in with a password once they set one
     subscribeRetiredProviders(strapi);
 
+    // LEGACY_READ_ONLY=true freezes the API for the switch to the new site:
+    // reads, search and sign-in stay, writes and registration are refused.
+    // Unset (or any other value) and restart: back to config/permissions.js.
+    const readOnly = isReadOnly(process.env);
+    subscribeReadOnly(strapi);
+
     // Public and Authenticated permissions come from config/permissions.js
-    if (process.env.PERMISSIONS_SYNC === "false") {
+    // (reduced to reads and sign-in in read-only mode, which ignores
+    // PERMISSIONS_SYNC=false: the freeze must hold)
+    if (readOnly) {
+      strapi.log.warn(
+        "[read-only] LEGACY_READ_ONLY=true: writes and registration refused"
+      );
+      await syncRolePermissions(
+        strapi,
+        readOnlyPermissions(strapi.config.get("permissions"))
+      );
+    } else if (process.env.PERMISSIONS_SYNC === "false") {
       strapi.log.warn(
         "[permissions] PERMISSIONS_SYNC=false: role permissions left as they are in the database"
       );

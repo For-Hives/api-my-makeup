@@ -3,7 +3,8 @@
 // missing from the database are added, any other action of these two roles
 // is removed. A box ticked by hand in the admin is therefore undone at the
 // next restart: change this file instead. PERMISSIONS_SYNC=false skips the
-// sync, for an emergency change made from the admin.
+// sync, for an emergency change made from the admin. LEGACY_READ_ONLY=true
+// applies a reduced copy of these lists (src/utils/read-only.js).
 //
 // Calls made by the front (my-makeup), checked one by one:
 // - public: /api/articles, /api/talents, /api/makeup-artistes (sitemap,
